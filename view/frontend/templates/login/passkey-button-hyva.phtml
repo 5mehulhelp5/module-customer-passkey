@@ -1,0 +1,106 @@
+<?php
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ *
+ * Hyvä-compatible variant of the passkey sign-in button. Hyvä ships no RequireJS,
+ * so the discoverable-login ceremony runs from an inline Alpine.js component rather
+ * than the `data-mage-init` module used by the Luma variant (passkey-button.phtml).
+ * Point a Hyvä theme's customer_account_login layout at this template.
+ *
+ * @var \MageDevGroup\CustomerPasskey\Block\Login\Passkey $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php if ($block->isAvailable()): ?>
+    <?php
+    $idleLabel = $escaper->escapeJs($block->getButtonLabel());
+    $busyLabel = $escaper->escapeJs(__('Signing in…'));
+    $unsupported = $escaper->escapeJs(__('Passkeys are not supported on this browser.'));
+    $failure = $escaper->escapeJs(__('Could not sign you in with a passkey. Please try again.'));
+    ?>
+    <div class="magedevgroup-customer-passkey"
+         x-data="magedevgroupCustomerPasskey(<?= $escaper->escapeHtmlAttr($block->getJsonConfig()) ?>)">
+        <button type="button"
+                class="btn btn-secondary magedevgroup-customer-passkey-button"
+                :disabled="busy"
+                @click="start()">
+            <span x-text="busy ? '<?= /* @noEscape */ $busyLabel ?>' : '<?= /* @noEscape */ $idleLabel ?>'"></span>
+        </button>
+        <div class="magedevgroup-customer-passkey-message" role="alert" x-show="message" x-text="message"></div>
+    </div>
+    <script>
+        function magedevgroupCustomerPasskey(config) {
+            'use strict';
+            const decode = (value) => {
+                const pad = value.length % 4;
+                const base64 = value.replace(/-/g, '+').replace(/_/g, '/') + (pad ? '='.repeat(4 - pad) : '');
+                const binary = atob(base64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+                return bytes.buffer;
+            };
+            const encode = (buffer) => {
+                const bytes = new Uint8Array(buffer);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) { binary += String.fromCharCode(bytes[i]); }
+                return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            };
+            const post = (url, body) => fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+                credentials: 'same-origin',
+                body: new URLSearchParams(Object.assign({form_key: config.formKey}, body)).toString()
+            });
+            return {
+                busy: false,
+                message: '',
+                async start() {
+                    if (this.busy) { return; }
+                    if (!window.PublicKeyCredential) {
+                        this.message = '<?= /* @noEscape */ $unsupported ?>';
+                        return;
+                    }
+                    this.busy = true;
+                    this.message = '';
+                    try {
+                        const optionsResponse = await post(config.optionsUrl, {});
+                        const options = await optionsResponse.json();
+                        if (!optionsResponse.ok) { throw new Error(options.message || 'options'); }
+                        const publicKey = {
+                            challenge: decode(options.challenge),
+                            rpId: options.rpId,
+                            userVerification: options.userVerification,
+                            timeout: options.timeout,
+                            allowCredentials: (options.allowCredentials || []).map((c) => ({
+                                type: c.type,
+                                id: decode(c.id),
+                                transports: c.transports
+                            }))
+                        };
+                        const assertion = await navigator.credentials.get({publicKey});
+                        const payload = {
+                            id: assertion.id,
+                            rawId: encode(assertion.rawId),
+                            type: assertion.type,
+                            response: {
+                                clientDataJSON: encode(assertion.response.clientDataJSON),
+                                authenticatorData: encode(assertion.response.authenticatorData),
+                                signature: encode(assertion.response.signature),
+                                userHandle: assertion.response.userHandle ? encode(assertion.response.userHandle) : null
+                            }
+                        };
+                        const verifyResponse = await post(config.verifyUrl, {
+                            publicKeyCredential: JSON.stringify(payload)
+                        });
+                        const verify = await verifyResponse.json();
+                        if (!verifyResponse.ok || !verify.success) { throw new Error(verify.message || 'verify'); }
+                        window.location.reload();
+                    } catch (e) {
+                        this.busy = false;
+                        this.message = '<?= /* @noEscape */ $failure ?>';
+                    }
+                }
+            };
+        }
+    </script>
+<?php endif; ?>

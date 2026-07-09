@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="magedevgroup" translate="label" sortOrder="400">
+            <label>MageDevGroup</label>
+        </tab>
+        <section id="magedevgroup_customer_passkey" translate="label" type="text" sortOrder="30"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Customer Passkey</label>
+            <tab>magedevgroup</tab>
+            <resource>MageDevGroup_CustomerPasskey::config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Passkey Login</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="rp_display_name" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Relying Party Display Name</label>
+                    <comment>Name the authenticator shows during a ceremony. Defaults to the store name.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="user_verification" translate="label comment" type="select" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>User Verification</label>
+                    <source_model>MageDevGroup\CustomerPasskey\Model\Config\Source\UserVerification</source_model>
+                    <comment>Whether the authenticator must verify the user (PIN/biometric) during a ceremony.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="authenticator_attachment" translate="label comment" type="select" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Authenticator Attachment</label>
+                    <source_model>MageDevGroup\CustomerPasskey\Model\Config\Source\AuthenticatorAttachment</source_model>
+                    <comment>Which class of authenticator to steer customers toward. "Any" applies no restriction.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="timeout" translate="label comment" type="text" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Ceremony Timeout (ms)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Time the browser waits for the authenticator, in milliseconds. Defaults to 60000.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="allow_passwordless" translate="label comment" type="select" sortOrder="60"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Passwordless Sign-In</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Offers usernameless "Sign in with a passkey" using discoverable credentials.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

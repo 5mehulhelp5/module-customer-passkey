@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <!-- One row per registered passkey (WebAuthn credential) for a storefront
+         customer. Magento is the relying party, so the authenticator's public key
+         and sign counter live here and are the source of truth at assertion time.
+         Rows cascade with their customer. `credential_id` is the base64url of the
+         raw credential id and is unique across the store so an assertion resolves
+         to exactly one credential. 512 chars (≈384 raw bytes) covers every real
+         authenticator, including large non-resident key handles; the theoretical
+         1023-byte WebAuthn maximum would exceed the utf8mb4 unique-index limit and
+         is not emitted in practice. -->
+    <table name="magedevgroup_passkey_credential" resource="default" engine="innodb"
+           comment="MageDevGroup Customer Passkey credentials">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
+                comment="Credential row id"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="false"
+                comment="Owning customer entity id"/>
+        <column xsi:type="varchar" name="credential_id" nullable="false" length="512"
+                comment="base64url of the WebAuthn credential id"/>
+        <column xsi:type="text" name="public_key" nullable="false"
+                comment="base64 of the COSE public key"/>
+        <column xsi:type="int" name="sign_count" unsigned="true" nullable="false" default="0"
+                comment="Last seen authenticator signature counter"/>
+        <column xsi:type="varchar" name="transports" nullable="true" length="255"
+                comment="JSON array of authenticator transports"/>
+        <column xsi:type="varchar" name="aaguid" nullable="true" length="64"
+                comment="Authenticator AAGUID"/>
+        <column xsi:type="varchar" name="attestation_type" nullable="true" length="64"
+                comment="Attestation statement type"/>
+        <column xsi:type="varchar" name="label" nullable="true" length="255"
+                comment="Customer-friendly credential label"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Registration time"/>
+        <column xsi:type="timestamp" name="last_used_at" nullable="true"
+                comment="Last successful assertion time"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="MAGEDEVGROUP_PASSKEY_CREDENTIAL_ID">
+            <column name="credential_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="MAGEDEVGROUP_PASSKEY_CREDENTIAL_CUSTOMER_ID"
+                    table="magedevgroup_passkey_credential" column="customer_id"
+                    referenceTable="customer_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="MAGEDEVGROUP_PASSKEY_CREDENTIAL_CUSTOMER" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+    </table>
+</schema>

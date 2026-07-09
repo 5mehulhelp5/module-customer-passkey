@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="customer.login.container">
+            <block class="MageDevGroup\CustomerPasskey\Block\Login\Passkey"
+                   name="magedevgroup.customer.passkey.button"
+                   before="customer_form_login"
+                   template="MageDevGroup_CustomerPasskey::login/passkey-button.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

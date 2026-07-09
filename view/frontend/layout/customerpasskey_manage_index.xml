@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="2columns-left"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="customer_account"/>
+    <head>
+        <title>My Passkeys</title>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="MageDevGroup\CustomerPasskey\Block\Manage\ListPasskeys"
+                   name="magedevgroup.customer.passkey.list"
+                   template="MageDevGroup_CustomerPasskey::manage/list.phtml"
+                   cacheable="false"/>
+        </referenceContainer>
+    </body>
+</page>
