@@ -1,0 +1,71 @@
+<?php
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ *
+ * My Account "Passkeys" section: lists the customer's registered passkeys with
+ * add-new (registration ceremony), rename and delete. Add is hidden when the
+ * module is disabled.
+ *
+ * @var \MageDevGroup\CustomerPasskey\Block\Manage\ListPasskeys $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$mageInit = '{"MageDevGroup_CustomerPasskey/js/passkey-manage": ' . $block->getJsonConfig() . '}';
+?>
+<div class="block magedevgroup-customer-passkey-manage"
+     data-mage-init='<?= /* @noEscape */ $mageInit ?>'>
+    <div class="block-title">
+        <strong><?= $escaper->escapeHtml(__('Passkeys')) ?></strong>
+    </div>
+    <div class="magedevgroup-customer-passkey-message" data-role="passkey-message" role="alert"></div>
+    <div class="block-content">
+        <?php if ($block->hasPasskeys()): ?>
+            <table class="data table" data-role="passkey-table">
+                <caption class="table-caption"><?= $escaper->escapeHtml(__('Passkeys')) ?></caption>
+                <thead>
+                    <tr>
+                        <th scope="col"><?= $escaper->escapeHtml(__('Name')) ?></th>
+                        <th scope="col"><?= $escaper->escapeHtml(__('Added')) ?></th>
+                        <th scope="col"><?= $escaper->escapeHtml(__('Last used')) ?></th>
+                        <th scope="col"><?= $escaper->escapeHtml(__('Actions')) ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($block->getPasskeys() as $passkey): ?>
+                        <tr data-role="passkey-row" data-entity-id="<?= (int) $passkey->entityId ?>">
+                            <td data-th="<?= $escaper->escapeHtmlAttr(__('Name')) ?>"
+                                data-role="passkey-label"><?= $escaper->escapeHtml($block->getLabel($passkey)) ?></td>
+                            <td data-th="<?= $escaper->escapeHtmlAttr(__('Added')) ?>">
+                                <?= $escaper->escapeHtml($block->renderDate($passkey->createdAt)) ?>
+                            </td>
+                            <td data-th="<?= $escaper->escapeHtmlAttr(__('Last used')) ?>">
+                                <?= $escaper->escapeHtml($block->renderDate($passkey->lastUsedAt)) ?>
+                            </td>
+                            <td data-th="<?= $escaper->escapeHtmlAttr(__('Actions')) ?>">
+                                <button type="button" class="action" data-role="passkey-rename">
+                                    <span><?= $escaper->escapeHtml(__('Rename')) ?></span>
+                                </button>
+                                <button type="button" class="action" data-role="passkey-delete">
+                                    <span><?= $escaper->escapeHtml(__('Delete')) ?></span>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p data-role="passkey-empty"><?= $escaper->escapeHtml(__('You have no passkeys yet.')) ?></p>
+        <?php endif; ?>
+
+        <?php if ($block->isEnabled()): ?>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <button type="button"
+                            class="action primary magedevgroup-customer-passkey-add"
+                            data-role="passkey-add">
+                        <span><?= $escaper->escapeHtml(__('Add a passkey')) ?></span>
+                    </button>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>

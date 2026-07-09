@@ -1,0 +1,22 @@
+<?php
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ *
+ * Luma storefront variant of the passkey sign-in button. A Hyvä-compatible variant
+ * lives in login/passkey-button-hyva.phtml.
+ *
+ * @var \MageDevGroup\CustomerPasskey\Block\Login\Passkey $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php if ($block->isAvailable()): ?>
+    <?php $mageInit = '{"MageDevGroup_CustomerPasskey/js/passkey-login": ' . $block->getJsonConfig() . '}'; ?>
+    <div class="magedevgroup-customer-passkey" data-mage-init='<?= /* @noEscape */ $mageInit ?>'>
+        <button type="button"
+                class="action secondary magedevgroup-customer-passkey-button"
+                data-role="passkey-login">
+            <span><?= $escaper->escapeHtml($block->getButtonLabel()) ?></span>
+        </button>
+        <div class="magedevgroup-customer-passkey-message" data-role="passkey-message" role="alert"></div>
+    </div>
+<?php endif; ?>
