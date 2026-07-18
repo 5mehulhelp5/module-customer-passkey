@@ -3,7 +3,7 @@
     "description": "Passwordless, phishing-resistant customer login for the Magento 2 storefront using passkeys (WebAuthn / FIDO2). Magento is the relying party — no external IdP. Standalone; coexists with customer-sso.",
     "type": "magento2-module",
     "license": "OSL-3.0",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "require": {
         "php": "~8.3.0||~8.4.0||~8.5.0",
         "magento/framework": ">=103.0",
