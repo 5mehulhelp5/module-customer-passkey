@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Config\Source;
+namespace DmLab\CustomerPasskey\Model\Config\Source;
 
-use MageDevGroup\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Config;
 use Magento\Framework\Data\OptionSourceInterface;
 
 /**

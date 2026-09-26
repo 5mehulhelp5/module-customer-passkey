@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Webauthn;
+namespace DmLab\CustomerPasskey\Model\Webauthn;
 
-use MageDevGroup\CustomerPasskey\Model\Credential;
-use MageDevGroup\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\CredentialRepository;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Symfony\Component\Uid\Uuid;
 use Webauthn\PublicKeyCredentialDescriptor;

@@ -1,17 +1,17 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\ResourceModel;
+namespace DmLab\CustomerPasskey\Model\ResourceModel;
 
-use MageDevGroup\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\Credential;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Serialize\Serializer\Json;
 
 /**
- * Persistence for the `magedevgroup_passkey_credential` table.
+ * Persistence for the `dmlab_passkey_credential` table.
  *
  * Direct-connection CRUD over a credential row, translating rows to/from the
  * {@see Credential} DTO (transports are stored as a JSON array). Lookups are by
@@ -20,7 +20,7 @@ use Magento\Framework\Serialize\Serializer\Json;
  */
 class CredentialResource
 {
-    private const TABLE = 'magedevgroup_passkey_credential';
+    private const TABLE = 'dmlab_passkey_credential';
 
     /**
      * @param ResourceConnection $resource

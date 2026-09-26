@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Controller\Manage;
+namespace DmLab\CustomerPasskey\Controller\Manage;
 
-use MageDevGroup\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\CredentialRepository;
 use Magento\Customer\Controller\AccountInterface;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action\HttpPostActionInterface;

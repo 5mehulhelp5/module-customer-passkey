@@ -1,17 +1,17 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Controller\Register;
+namespace DmLab\CustomerPasskey\Test\Unit\Controller\Register;
 
-use MageDevGroup\CustomerPasskey\Controller\Register\Verify;
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Registration\AttestationVerifier;
-use MageDevGroup\CustomerPasskey\Model\Security\RateLimiter;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\ChallengeStorage;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
+use DmLab\CustomerPasskey\Controller\Register\Verify;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Registration\AttestationVerifier;
+use DmLab\CustomerPasskey\Model\Security\RateLimiter;
+use DmLab\CustomerPasskey\Model\Webauthn\ChallengeStorage;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\RequestInterface;

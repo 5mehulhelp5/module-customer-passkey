@@ -1,4 +1,4 @@
-# MageDevGroup_CustomerPasskey
+# DmLab_CustomerPasskey
 
 > Passwordless storefront login for Magento 2 with passkeys (WebAuthn / FIDO2).
 
@@ -18,19 +18,19 @@ external IdP, no OIDC, and no shared SSO core. The module is standalone and coex
 ## Install
 
 ```bash
-composer require magedevgroup/module-customer-passkey
-bin/magento module:enable MageDevGroup_CustomerPasskey
+composer require dmlab/module-customer-passkey
+bin/magento module:enable DmLab_CustomerPasskey
 bin/magento setup:upgrade
 bin/magento setup:di:compile        # production mode
 ```
 
-This creates the `magedevgroup_passkey_credential` table (one row per registered passkey,
+This creates the `dmlab_passkey_credential` table (one row per registered passkey,
 cascades with its customer).
 
 ## Configuration
 
-Admin → Stores → Configuration → **MageDevGroup → Customer Passkey → General**
-(`magedevgroup_customer_passkey/general/*`). Configurable per website/store view.
+Admin → Stores → Configuration → **DMLab → Customer Passkey → General**
+(`dmlab_customer_passkey/general/*`). Configurable per website/store view.
 
 | Field | Default | Notes |
 |---|---|---|
@@ -102,4 +102,4 @@ Real-authenticator flows (Touch ID / security key) are verified manually.
 
 ## License
 
-[OSL-3.0](LICENSE) © MageDevGroup. Commercial licensing and support: <https://magedevgroup.com>.
+[OSL-3.0](LICENSE) © DMLab. Commercial licensing and support: <https://dmlab.work>.

@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <tab id="magedevgroup" translate="label" sortOrder="400">
-            <label>MageDevGroup</label>
+        <tab id="dmlab" translate="label" sortOrder="400">
+            <label>DMLab</label>
         </tab>
-        <section id="magedevgroup_customer_passkey" translate="label" type="text" sortOrder="30"
+        <section id="dmlab_customer_passkey" translate="label" type="text" sortOrder="30"
                  showInDefault="1" showInWebsite="1" showInStore="1">
             <class>separator-top</class>
             <label>Customer Passkey</label>
-            <tab>magedevgroup</tab>
-            <resource>MageDevGroup_CustomerPasskey::config</resource>
+            <tab>dmlab</tab>
+            <resource>DmLab_CustomerPasskey::config</resource>
             <group id="general" translate="label" type="text" sortOrder="10"
                    showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General</label>
@@ -35,7 +35,7 @@
                 <field id="user_verification" translate="label comment" type="select" sortOrder="30"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>User Verification</label>
-                    <source_model>MageDevGroup\CustomerPasskey\Model\Config\Source\UserVerification</source_model>
+                    <source_model>DmLab\CustomerPasskey\Model\Config\Source\UserVerification</source_model>
                     <comment>Whether the authenticator must verify the user (PIN/biometric) during a ceremony.</comment>
                     <depends>
                         <field id="enabled">1</field>
@@ -44,7 +44,7 @@
                 <field id="authenticator_attachment" translate="label comment" type="select" sortOrder="40"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Authenticator Attachment</label>
-                    <source_model>MageDevGroup\CustomerPasskey\Model\Config\Source\AuthenticatorAttachment</source_model>
+                    <source_model>DmLab\CustomerPasskey\Model\Config\Source\AuthenticatorAttachment</source_model>
                     <comment>Which class of authenticator to steer customers toward. "Any" applies no restriction.</comment>
                     <depends>
                         <field id="enabled">1</field>

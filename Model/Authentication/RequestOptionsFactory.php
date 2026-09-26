@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Authentication;
+namespace DmLab\CustomerPasskey\Model\Authentication;
 
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
 use Webauthn\PublicKeyCredentialRequestOptions;
 use Webauthn\PublicKeyCredentialUserEntity;
 

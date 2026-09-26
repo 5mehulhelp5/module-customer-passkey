@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Authentication;
+namespace DmLab\CustomerPasskey\Model\Authentication;
 
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\RelyingPartyEntityFactory;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
+use DmLab\CustomerPasskey\Model\Webauthn\RelyingPartyEntityFactory;
 use Webauthn\AttestationStatement\AttestationObjectLoader;
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
@@ -21,7 +21,7 @@ use Webauthn\PublicKeyCredentialSource;
 
 /**
  * Verifies a WebAuthn authentication (assertion) response against the challenge
- * the {@see \MageDevGroup\CustomerPasskey\Controller\Login\Options} controller
+ * the {@see \DmLab\CustomerPasskey\Controller\Login\Options} controller
  * issued, returning the {@see PublicKeyCredentialSource} whose owning customer id
  * ({@see PublicKeyCredentialSource::$userHandle}) the caller logs in.
  *

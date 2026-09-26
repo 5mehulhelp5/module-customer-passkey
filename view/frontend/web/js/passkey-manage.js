@@ -1,5 +1,5 @@
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * My Account passkey management for the Luma theme.
  *

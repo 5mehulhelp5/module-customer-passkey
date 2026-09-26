@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
         <route id="customerpasskey" frontName="customerpasskey">
-            <module name="MageDevGroup_CustomerPasskey"/>
+            <module name="DmLab_CustomerPasskey"/>
         </route>
     </router>
 </config>

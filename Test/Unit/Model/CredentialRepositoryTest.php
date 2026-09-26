@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Model;
+namespace DmLab\CustomerPasskey\Test\Unit\Model;
 
-use MageDevGroup\CustomerPasskey\Model\Credential;
-use MageDevGroup\CustomerPasskey\Model\CredentialRepository;
-use MageDevGroup\CustomerPasskey\Model\ResourceModel\CredentialResource;
+use DmLab\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\ResourceModel\CredentialResource;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

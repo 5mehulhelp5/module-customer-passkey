@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Model\Webauthn;
+namespace DmLab\CustomerPasskey\Test\Unit\Model\Webauthn;
 
-use MageDevGroup\CustomerPasskey\Model\Webauthn\OptionsSerializer;
+use DmLab\CustomerPasskey\Model\Webauthn\OptionsSerializer;
 use PHPUnit\Framework\TestCase;
 use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\PublicKeyCredentialDescriptor;

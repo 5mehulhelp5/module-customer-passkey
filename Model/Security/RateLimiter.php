@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Security;
+namespace DmLab\CustomerPasskey\Model\Security;
 
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
@@ -25,10 +25,10 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 class RateLimiter
 {
     /** Cache tag so all passkey throttle counters can be flushed together. */
-    private const CACHE_TAG = 'MAGEDEVGROUP_CUSTOMER_PASSKEY_RL';
+    private const CACHE_TAG = 'DMLAB_CUSTOMER_PASSKEY_RL';
 
     /** Cache-key prefix for a throttle counter. */
-    private const KEY_PREFIX = 'magedevgroup_customer_passkey_rl_';
+    private const KEY_PREFIX = 'dmlab_customer_passkey_rl_';
 
     /**
      * @param CacheInterface $cache

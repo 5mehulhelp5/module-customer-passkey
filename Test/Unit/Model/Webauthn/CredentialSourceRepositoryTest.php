@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Model\Webauthn;
+namespace DmLab\CustomerPasskey\Test\Unit\Model\Webauthn;
 
-use MageDevGroup\CustomerPasskey\Model\Credential;
-use MageDevGroup\CustomerPasskey\Model\CredentialRepository;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
+use DmLab\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;

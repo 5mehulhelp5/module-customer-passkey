@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Model\Security;
+namespace DmLab\CustomerPasskey\Test\Unit\Model\Security;
 
-use MageDevGroup\CustomerPasskey\Model\Security\RateLimiter;
+use DmLab\CustomerPasskey\Model\Security\RateLimiter;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;

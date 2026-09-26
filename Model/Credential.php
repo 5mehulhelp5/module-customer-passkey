@@ -1,15 +1,15 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model;
+namespace DmLab\CustomerPasskey\Model;
 
 /**
  * A registered passkey (WebAuthn credential) for a storefront customer — see
  * etc/db_schema.xml. A plain mutable data holder: persistence lives in
- * {@see \MageDevGroup\CustomerPasskey\Model\ResourceModel\CredentialResource} and
+ * {@see \DmLab\CustomerPasskey\Model\ResourceModel\CredentialResource} and
  * the API surface in {@see CredentialRepository}. `entityId` is null until the row
  * is persisted. The library ↔ storage type mapping (COSE key, transports) is wired
  * in a later task; here the fields are transport-agnostic strings.

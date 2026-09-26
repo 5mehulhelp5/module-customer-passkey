@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Webauthn;
+namespace DmLab\CustomerPasskey\Model\Webauthn;
 
 use Magento\Customer\Model\Session;
 
@@ -25,7 +25,7 @@ use Magento\Customer\Model\Session;
 class ChallengeStorage
 {
     /** Session key holding the pending ceremony state (challenge + login scope). */
-    private const SESSION_KEY = 'magedevgroup_customer_passkey_challenge';
+    private const SESSION_KEY = 'dmlab_customer_passkey_challenge';
 
     /**
      * @param Session $session

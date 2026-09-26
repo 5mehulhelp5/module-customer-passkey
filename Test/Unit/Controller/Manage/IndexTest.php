@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Controller\Manage;
+namespace DmLab\CustomerPasskey\Test\Unit\Controller\Manage;
 
-use MageDevGroup\CustomerPasskey\Controller\Manage\Index;
+use DmLab\CustomerPasskey\Controller\Manage\Index;
 use Magento\Customer\Controller\AccountInterface;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\View\Result\Page;

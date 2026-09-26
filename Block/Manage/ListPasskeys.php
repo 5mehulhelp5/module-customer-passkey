@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Block\Manage;
+namespace DmLab\CustomerPasskey\Block\Manage;
 
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Credential;
-use MageDevGroup\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\CredentialRepository;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Serialize\Serializer\Json;

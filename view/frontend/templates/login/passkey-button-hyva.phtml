@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Hyvä-compatible variant of the passkey sign-in button. Hyvä ships no RequireJS,
  * so the discoverable-login ceremony runs from an inline Alpine.js component rather
  * than the `data-mage-init` module used by the Luma variant (passkey-button.phtml).
  * Point a Hyvä theme's customer_account_login layout at this template.
  *
- * @var \MageDevGroup\CustomerPasskey\Block\Login\Passkey $block
+ * @var \DmLab\CustomerPasskey\Block\Login\Passkey $block
  * @var \Magento\Framework\Escaper $escaper
  */
 ?>
@@ -18,18 +18,18 @@
     $unsupported = $escaper->escapeJs(__('Passkeys are not supported on this browser.'));
     $failure = $escaper->escapeJs(__('Could not sign you in with a passkey. Please try again.'));
     ?>
-    <div class="magedevgroup-customer-passkey"
-         x-data="magedevgroupCustomerPasskey(<?= $escaper->escapeHtmlAttr($block->getJsonConfig()) ?>)">
+    <div class="dmlab-customer-passkey"
+         x-data="dmlabCustomerPasskey(<?= $escaper->escapeHtmlAttr($block->getJsonConfig()) ?>)">
         <button type="button"
-                class="btn btn-secondary magedevgroup-customer-passkey-button"
+                class="btn btn-secondary dmlab-customer-passkey-button"
                 :disabled="busy"
                 @click="start()">
             <span x-text="busy ? '<?= /* @noEscape */ $busyLabel ?>' : '<?= /* @noEscape */ $idleLabel ?>'"></span>
         </button>
-        <div class="magedevgroup-customer-passkey-message" role="alert" x-show="message" x-text="message"></div>
+        <div class="dmlab-customer-passkey-message" role="alert" x-show="message" x-text="message"></div>
     </div>
     <script>
-        function magedevgroupCustomerPasskey(config) {
+        function dmlabCustomerPasskey(config) {
             'use strict';
             const decode = (value) => {
                 const pad = value.length % 4;

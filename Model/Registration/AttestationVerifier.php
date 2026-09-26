@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model\Registration;
+namespace DmLab\CustomerPasskey\Model\Registration;
 
 use Cose\Algorithms;
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\RelyingPartyEntityFactory;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Webauthn\RelyingPartyEntityFactory;
 use Webauthn\AttestationStatement\AttestationObjectLoader;
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
@@ -24,7 +24,7 @@ use Webauthn\PublicKeyCredentialUserEntity;
 
 /**
  * Verifies a WebAuthn registration (attestation) response against the challenge
- * the {@see \MageDevGroup\CustomerPasskey\Controller\Register\Options} controller
+ * the {@see \DmLab\CustomerPasskey\Controller\Register\Options} controller
  * issued, returning the {@see PublicKeyCredentialSource} to persist.
  *
  * The original creation options are reconstructed from the consumed challenge plus

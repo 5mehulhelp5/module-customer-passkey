@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Block\Login;
+namespace DmLab\CustomerPasskey\Block\Login;
 
-use MageDevGroup\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Config;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template;

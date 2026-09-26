@@ -1,17 +1,17 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Controller\Login;
+namespace DmLab\CustomerPasskey\Test\Unit\Controller\Login;
 
-use MageDevGroup\CustomerPasskey\Controller\Login\Options;
-use MageDevGroup\CustomerPasskey\Model\Authentication\RequestOptionsFactory;
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Security\RateLimiter;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\ChallengeStorage;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\OptionsSerializer;
+use DmLab\CustomerPasskey\Controller\Login\Options;
+use DmLab\CustomerPasskey\Model\Authentication\RequestOptionsFactory;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Security\RateLimiter;
+use DmLab\CustomerPasskey\Model\Webauthn\ChallengeStorage;
+use DmLab\CustomerPasskey\Model\Webauthn\OptionsSerializer;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\RequestInterface;

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <magedevgroup_customer_passkey>
+        <dmlab_customer_passkey>
             <general>
                 <enabled>0</enabled>
                 <user_verification>preferred</user_verification>
@@ -15,6 +15,6 @@
                 <timeout>60000</timeout>
                 <allow_passwordless>1</allow_passwordless>
             </general>
-        </magedevgroup_customer_passkey>
+        </dmlab_customer_passkey>
     </default>
 </config>
