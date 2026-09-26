@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Controller\Manage;
+namespace DmLab\CustomerPasskey\Test\Unit\Controller\Manage;
 
-use MageDevGroup\CustomerPasskey\Controller\Manage\Delete;
-use MageDevGroup\CustomerPasskey\Model\Credential;
-use MageDevGroup\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Controller\Manage\Delete;
+use DmLab\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\CredentialRepository;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;

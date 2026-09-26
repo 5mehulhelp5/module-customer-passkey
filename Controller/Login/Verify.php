@@ -1,16 +1,16 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Controller\Login;
+namespace DmLab\CustomerPasskey\Controller\Login;
 
-use MageDevGroup\CustomerPasskey\Model\Authentication\AssertionVerifier;
-use MageDevGroup\CustomerPasskey\Model\Config;
-use MageDevGroup\CustomerPasskey\Model\Security\RateLimiter;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\ChallengeStorage;
-use MageDevGroup\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
+use DmLab\CustomerPasskey\Model\Authentication\AssertionVerifier;
+use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Security\RateLimiter;
+use DmLab\CustomerPasskey\Model\Webauthn\ChallengeStorage;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\AccountConfirmation;

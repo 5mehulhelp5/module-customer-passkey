@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model;
+namespace DmLab\CustomerPasskey\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
@@ -21,22 +21,22 @@ use Magento\Store\Model\StoreManagerInterface;
 class Config
 {
     /** Whether passkey login is enabled. */
-    public const XML_PATH_ENABLED = 'magedevgroup_customer_passkey/general/enabled';
+    public const XML_PATH_ENABLED = 'dmlab_customer_passkey/general/enabled';
 
     /** Human-readable relying-party name shown by the authenticator. */
-    public const XML_PATH_RP_DISPLAY_NAME = 'magedevgroup_customer_passkey/general/rp_display_name';
+    public const XML_PATH_RP_DISPLAY_NAME = 'dmlab_customer_passkey/general/rp_display_name';
 
     /** WebAuthn user-verification requirement (required/preferred/discouraged). */
-    public const XML_PATH_USER_VERIFICATION = 'magedevgroup_customer_passkey/general/user_verification';
+    public const XML_PATH_USER_VERIFICATION = 'dmlab_customer_passkey/general/user_verification';
 
     /** Authenticator attachment preference (any/platform/cross-platform). */
-    public const XML_PATH_AUTHENTICATOR_ATTACHMENT = 'magedevgroup_customer_passkey/general/authenticator_attachment';
+    public const XML_PATH_AUTHENTICATOR_ATTACHMENT = 'dmlab_customer_passkey/general/authenticator_attachment';
 
     /** Ceremony timeout in milliseconds. */
-    public const XML_PATH_TIMEOUT = 'magedevgroup_customer_passkey/general/timeout';
+    public const XML_PATH_TIMEOUT = 'dmlab_customer_passkey/general/timeout';
 
     /** Whether usernameless/discoverable ("Sign in with a passkey") login is offered. */
-    public const XML_PATH_ALLOW_PASSWORDLESS = 'magedevgroup_customer_passkey/general/allow_passwordless';
+    public const XML_PATH_ALLOW_PASSWORDLESS = 'dmlab_customer_passkey/general/allow_passwordless';
 
     /** The user must prove presence + verification (PIN/biometric). */
     public const USER_VERIFICATION_REQUIRED = 'required';

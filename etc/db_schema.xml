@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -15,8 +15,8 @@
          authenticator, including large non-resident key handles; the theoretical
          1023-byte WebAuthn maximum would exceed the utf8mb4 unique-index limit and
          is not emitted in practice. -->
-    <table name="magedevgroup_passkey_credential" resource="default" engine="innodb"
-           comment="MageDevGroup Customer Passkey credentials">
+    <table name="dmlab_passkey_credential" resource="default" engine="innodb"
+           comment="DmLab Customer Passkey credentials">
         <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
                 comment="Credential row id"/>
         <column xsi:type="int" name="customer_id" unsigned="true" nullable="false"
@@ -42,13 +42,13 @@
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id"/>
         </constraint>
-        <constraint xsi:type="unique" referenceId="MAGEDEVGROUP_PASSKEY_CREDENTIAL_ID">
+        <constraint xsi:type="unique" referenceId="DMLAB_PASSKEY_CREDENTIAL_ID">
             <column name="credential_id"/>
         </constraint>
-        <constraint xsi:type="foreign" referenceId="MAGEDEVGROUP_PASSKEY_CREDENTIAL_CUSTOMER_ID"
-                    table="magedevgroup_passkey_credential" column="customer_id"
+        <constraint xsi:type="foreign" referenceId="DMLAB_PASSKEY_CREDENTIAL_CUSTOMER_ID"
+                    table="dmlab_passkey_credential" column="customer_id"
                     referenceTable="customer_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
-        <index referenceId="MAGEDEVGROUP_PASSKEY_CREDENTIAL_CUSTOMER" indexType="btree">
+        <index referenceId="DMLAB_PASSKEY_CREDENTIAL_CUSTOMER" indexType="btree">
             <column name="customer_id"/>
         </index>
     </table>

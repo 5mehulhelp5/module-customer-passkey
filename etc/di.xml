@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,5 +9,5 @@
     <!-- Back the WebAuthn library's credential-source repository with our storage,
          so the attestation/assertion validators read and write our credential table. -->
     <preference for="Webauthn\PublicKeyCredentialSourceRepository"
-                type="MageDevGroup\CustomerPasskey\Model\Webauthn\CredentialSourceRepository"/>
+                type="DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository"/>
 </config>

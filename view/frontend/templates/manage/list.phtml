@@ -1,22 +1,22 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * My Account "Passkeys" section: lists the customer's registered passkeys with
  * add-new (registration ceremony), rename and delete. Add is hidden when the
  * module is disabled.
  *
- * @var \MageDevGroup\CustomerPasskey\Block\Manage\ListPasskeys $block
+ * @var \DmLab\CustomerPasskey\Block\Manage\ListPasskeys $block
  * @var \Magento\Framework\Escaper $escaper
  */
-$mageInit = '{"MageDevGroup_CustomerPasskey/js/passkey-manage": ' . $block->getJsonConfig() . '}';
+$mageInit = '{"DmLab_CustomerPasskey/js/passkey-manage": ' . $block->getJsonConfig() . '}';
 ?>
-<div class="block magedevgroup-customer-passkey-manage"
+<div class="block dmlab-customer-passkey-manage"
      data-mage-init='<?= /* @noEscape */ $mageInit ?>'>
     <div class="block-title">
         <strong><?= $escaper->escapeHtml(__('Passkeys')) ?></strong>
     </div>
-    <div class="magedevgroup-customer-passkey-message" data-role="passkey-message" role="alert"></div>
+    <div class="dmlab-customer-passkey-message" data-role="passkey-message" role="alert"></div>
     <div class="block-content">
         <?php if ($block->hasPasskeys()): ?>
             <table class="data table" data-role="passkey-table">
@@ -60,7 +60,7 @@ $mageInit = '{"MageDevGroup_CustomerPasskey/js/passkey-manage": ' . $block->getJ
             <div class="actions-toolbar">
                 <div class="primary">
                     <button type="button"
-                            class="action primary magedevgroup-customer-passkey-add"
+                            class="action primary dmlab-customer-passkey-add"
                             data-role="passkey-add">
                         <span><?= $escaper->escapeHtml(__('Add a passkey')) ?></span>
                     </button>

@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Test\Unit\Model\ResourceModel;
+namespace DmLab\CustomerPasskey\Test\Unit\Model\ResourceModel;
 
-use MageDevGroup\CustomerPasskey\Model\Credential;
-use MageDevGroup\CustomerPasskey\Model\ResourceModel\CredentialResource;
+use DmLab\CustomerPasskey\Model\Credential;
+use DmLab\CustomerPasskey\Model\ResourceModel\CredentialResource;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\Pdo\Mysql;
 use Magento\Framework\DB\Select;
@@ -191,7 +191,7 @@ class CredentialResourceTest extends TestCase
         $credential = new Credential(entityId: 7, customerId: 42, credentialId: 'cred-abc');
 
         $this->connection->expects(self::once())->method('delete')
-            ->with('magedevgroup_passkey_credential', ['entity_id = ?' => 7]);
+            ->with('dmlab_passkey_credential', ['entity_id = ?' => 7]);
 
         $this->resource->delete($credential);
     }

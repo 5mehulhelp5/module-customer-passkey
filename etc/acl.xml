@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -12,7 +12,7 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="MageDevGroup_CustomerPasskey::config" title="Customer Passkey Section" sortOrder="30"/>
+                            <resource id="DmLab_CustomerPasskey::config" title="Customer Passkey Section" sortOrder="30"/>
                         </resource>
                     </resource>
                 </resource>

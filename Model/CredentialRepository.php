@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\CustomerPasskey\Model;
+namespace DmLab\CustomerPasskey\Model;
 
-use MageDevGroup\CustomerPasskey\Model\ResourceModel\CredentialResource;
+use DmLab\CustomerPasskey\Model\ResourceModel\CredentialResource;
 
 /**
  * The application-facing store for passkey credentials: resolve a credential by

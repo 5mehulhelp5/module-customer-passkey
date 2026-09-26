@@ -1,5 +1,5 @@
 {
-    "magedevgroup_passkey_credential": {
+    "dmlab_passkey_credential": {
         "column": {
             "entity_id": true,
             "customer_id": true,
@@ -15,11 +15,11 @@
         },
         "constraint": {
             "PRIMARY": true,
-            "MAGEDEVGROUP_PASSKEY_CREDENTIAL_ID": true,
-            "MAGEDEVGROUP_PASSKEY_CREDENTIAL_CUSTOMER_ID": true
+            "DMLAB_PASSKEY_CREDENTIAL_ID": true,
+            "DMLAB_PASSKEY_CREDENTIAL_CUSTOMER_ID": true
         },
         "index": {
-            "MAGEDEVGROUP_PASSKEY_CREDENTIAL_CUSTOMER": true
+            "DMLAB_PASSKEY_CREDENTIAL_CUSTOMER": true
         }
     }
 }

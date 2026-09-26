@@ -1,5 +1,5 @@
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Discoverable ("Sign in with a passkey") storefront login for the Luma theme.
  *
