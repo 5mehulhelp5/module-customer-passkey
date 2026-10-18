@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -23,9 +24,8 @@ use Webauthn\PublicKeyCredentialUserEntity;
  * the customer id, `name` the email and `displayName` the account name. The
  * customer's already-registered passkeys become `excludeCredentials` so the same
  * authenticator cannot enrol twice. Relying-party, timeout, user-verification and
- * authenticator-attachment come from {@see Config}; resident keys are requested
- * when passwordless (discoverable) login is enabled so the credential can later
- * sign in without an email.
+ * authenticator-attachment come from {@see Config}; a resident key is always
+ * required because login is discoverable-only.
  */
 class CreationOptionsFactory
 {
@@ -86,8 +86,8 @@ class CreationOptionsFactory
 
     /**
      * Authenticator-selection criteria from config: attachment ({@see Config}'s
-     * "any" maps to no preference), user-verification, and a resident-key request
-     * only when passwordless login is enabled.
+     * "any" maps to no preference), user-verification, and a required resident key
+     * (login is discoverable-only, so a non-resident key could never sign in).
      *
      * @param int|string|null $storeId
      */
@@ -98,9 +98,7 @@ class CreationOptionsFactory
         return AuthenticatorSelectionCriteria::create(
             $attachment === Config::ATTACHMENT_ANY ? null : $attachment,
             $this->config->getUserVerification($storeId),
-            $this->config->isPasswordlessAllowed($storeId)
-                ? AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_PREFERRED
-                : AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_NO_PREFERENCE
+            AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED
         );
     }
 }

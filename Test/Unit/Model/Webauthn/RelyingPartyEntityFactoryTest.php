@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -27,20 +28,19 @@ class RelyingPartyEntityFactoryTest extends TestCase
         $this->factory = new RelyingPartyEntityFactory($this->config);
     }
 
-    public function testCreateUsesDisplayNameAndHostAsId(): void
+    public function testCreateUsesHostAsIdAndLeavesDeprecatedNameEmpty(): void
     {
-        $this->config->method('getRpDisplayName')->willReturn('Example Store');
         $this->config->method('getRpId')->willReturn('shop.example.com');
 
         $entity = $this->factory->create();
 
-        self::assertSame('Example Store', $entity->name);
+        // rp.name is emitted by OptionsSerializer; the library deprecates the entity name.
+        self::assertSame('', $entity->name);
         self::assertSame('shop.example.com', $entity->id);
     }
 
     public function testCreateLeavesIdNullWhenHostUnresolvable(): void
     {
-        $this->config->method('getRpDisplayName')->willReturn('Example Store');
         $this->config->method('getRpId')->willReturn('');
 
         $entity = $this->factory->create();

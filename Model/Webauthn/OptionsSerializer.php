@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\CustomerPasskey\Model\Webauthn;
 
+use DmLab\CustomerPasskey\Model\Config;
 use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\PublicKeyCredentialDescriptor;
@@ -19,12 +21,20 @@ use Webauthn\PublicKeyCredentialRequestOptions;
  * challenge and ids as unpadded base64url, camelCase keys, optional members
  * omitted when unset.
  *
- * Hand-rolled rather than via the library's Symfony-serializer factory so the
- * module depends only on `magento/framework` + `web-auth/webauthn-lib` — no
- * `symfony/serializer` — and emits no deprecations.
+ * Hand-rolled rather than via the library's Symfony serializer so the browser
+ * contract is pinned here. `rp.name` is the configured display name: the library
+ * deprecates the entity name ({@see RelyingPartyEntityFactory}).
  */
 class OptionsSerializer
 {
+    /**
+     * @param Config $config
+     */
+    public function __construct(
+        private readonly Config $config
+    ) {
+    }
+
     /**
      * The options as a JSON-ready associative array.
      *
@@ -53,7 +63,7 @@ class OptionsSerializer
     {
         $json = [
             'rp' => array_filter(
-                ['id' => $options->rp->id, 'name' => $options->rp->name],
+                ['id' => $options->rp->id, 'name' => $this->config->getRpDisplayName()],
                 static fn($v): bool => $v !== null
             ),
             'user' => [

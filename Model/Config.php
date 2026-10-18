@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -38,6 +39,21 @@ class Config
     /** Whether usernameless/discoverable ("Sign in with a passkey") login is offered. */
     public const XML_PATH_ALLOW_PASSWORDLESS = 'dmlab_customer_passkey/general/allow_passwordless';
 
+    /** Seconds a sign-in or password confirmation stays fresh enough to add a passkey. */
+    public const XML_PATH_REAUTH_WINDOW = 'dmlab_customer_passkey/general/reauth_window';
+
+    /** Whether passkey added/removed emails are sent. */
+    public const XML_PATH_NOTIFICATION_ENABLED = 'dmlab_customer_passkey/notification/enabled';
+
+    /** Sender identity for passkey notifications (e.g. `general`). */
+    public const XML_PATH_NOTIFICATION_IDENTITY = 'dmlab_customer_passkey/notification/identity';
+
+    /** Email template sent when a passkey is added. */
+    public const XML_PATH_NOTIFICATION_ADDED_TEMPLATE = 'dmlab_customer_passkey/notification/added_template';
+
+    /** Email template sent when a passkey is removed. */
+    public const XML_PATH_NOTIFICATION_REMOVED_TEMPLATE = 'dmlab_customer_passkey/notification/removed_template';
+
     /** The user must prove presence + verification (PIN/biometric). */
     public const USER_VERIFICATION_REQUIRED = 'required';
 
@@ -58,6 +74,15 @@ class Config
 
     /** Ceremony timeout used when the admin leaves the field blank. */
     public const DEFAULT_TIMEOUT = 60000;
+
+    /** Re-authentication window used when the admin leaves the field blank. */
+    public const DEFAULT_REAUTH_WINDOW = 300;
+
+    /** Bundled "passkey added" template id (etc/email_templates.xml). */
+    public const DEFAULT_ADDED_TEMPLATE = 'dmlab_customer_passkey_notification_added_template';
+
+    /** Bundled "passkey removed" template id (etc/email_templates.xml). */
+    public const DEFAULT_REMOVED_TEMPLATE = 'dmlab_customer_passkey_notification_removed_template';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -141,8 +166,7 @@ class Config
     }
 
     /**
-     * Ceremony timeout in milliseconds; {@see self::DEFAULT_TIMEOUT} when unset
-     * or non-positive.
+     * Ceremony timeout in milliseconds; {@see self::DEFAULT_TIMEOUT} when unset or non-positive.
      *
      * @param int|string|null $storeId
      */
@@ -155,6 +179,70 @@ class Config
         );
 
         return $value > 0 ? $value : self::DEFAULT_TIMEOUT;
+    }
+
+    /**
+     * Re-authentication window in seconds.
+     *
+     * {@see self::DEFAULT_REAUTH_WINDOW} when unset or non-positive.
+     *
+     * @param int|string|null $storeId
+     */
+    public function getReauthWindow($storeId = null): int
+    {
+        $value = (int)$this->scopeConfig->getValue(
+            self::XML_PATH_REAUTH_WINDOW,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+
+        return $value > 0 ? $value : self::DEFAULT_REAUTH_WINDOW;
+    }
+
+    /**
+     * Whether passkey added/removed notifications are sent.
+     *
+     * @param int|string|null $storeId
+     */
+    public function isNotificationEnabled($storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_NOTIFICATION_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Sender identity for notifications; `general` when unset.
+     *
+     * @param int|string|null $storeId
+     */
+    public function getNotificationIdentity($storeId = null): string
+    {
+        return $this->readNonEmptyString(self::XML_PATH_NOTIFICATION_IDENTITY, $storeId) ?? 'general';
+    }
+
+    /**
+     * Template id for the "passkey added" email; the bundled one when unset.
+     *
+     * @param int|string|null $storeId
+     */
+    public function getAddedTemplate($storeId = null): string
+    {
+        return $this->readNonEmptyString(self::XML_PATH_NOTIFICATION_ADDED_TEMPLATE, $storeId)
+            ?? self::DEFAULT_ADDED_TEMPLATE;
+    }
+
+    /**
+     * Template id for the "passkey removed" email; the bundled one when unset.
+     *
+     * @param int|string|null $storeId
+     */
+    public function getRemovedTemplate($storeId = null): string
+    {
+        return $this->readNonEmptyString(self::XML_PATH_NOTIFICATION_REMOVED_TEMPLATE, $storeId)
+            ?? self::DEFAULT_REMOVED_TEMPLATE;
     }
 
     /**

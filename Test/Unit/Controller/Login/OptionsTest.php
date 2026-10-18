@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -168,10 +169,11 @@ class OptionsTest extends TestCase
         $this->request->method('getParam')->with('email', '')->willReturn('');
 
         $this->customerRepository->expects(self::never())->method('get');
-        $this->optionsFactory->expects(self::once())->method('create')->with(null)
+        $this->optionsFactory->expects(self::once())->method('create')->with()
             ->willReturn($this->options('disc-challenge'));
         // Discoverable login is unscoped — any resident key may assert.
-        $this->challengeStorage->expects(self::once())->method('save')->with('disc-challenge', null);
+        $this->challengeStorage->expects(self::once())->method('save')
+            ->with(ChallengeStorage::CEREMONY_LOGIN, 'disc-challenge', null);
 
         $serialized = ['challenge' => 'ZGlzYw', 'rpId' => 'acme.test'];
         $this->serializer->method('toArray')->willReturn($serialized);
@@ -181,57 +183,137 @@ class OptionsTest extends TestCase
         self::assertSame($this->json, $this->controller->execute());
     }
 
-    public function testEmailFirstResolvesCustomerAndPersistsChallenge(): void
+    public function testEmailScopesChallengeToResolvedCustomer(): void
     {
         $this->config->method('isEnabled')->willReturn(true);
         $this->config->method('isPasswordlessAllowed')->willReturn(false);
         $this->request->method('getParam')->with('email', '')->willReturn('shopper@acme.test');
+        $this->stubWebsite();
 
-        $store = $this->createMock(StoreInterface::class);
-        $store->method('getWebsiteId')->willReturn(1);
-        $this->storeManager->method('getStore')->willReturn($store);
-
-        $customer = $this->createMock(CustomerInterface::class);
+        $customer = $this->createStub(CustomerInterface::class);
         $customer->method('getId')->willReturn(42);
         $this->customerRepository->expects(self::once())->method('get')
             ->with('shopper@acme.test', 1)->willReturn($customer);
 
-        $this->optionsFactory->expects(self::once())->method('create')->with(42)
+        // The email never reaches the options — only the stored scope.
+        $this->optionsFactory->expects(self::once())->method('create')->with()
             ->willReturn($this->options('email-challenge'));
-        // Email-first binds the request to the resolved account for the verify step.
-        $this->challengeStorage->expects(self::once())->method('save')->with('email-challenge', 42);
-
-        $serialized = ['challenge' => 'ZW1haWw', 'allowCredentials' => [['type' => 'public-key', 'id' => 'x']]];
-        $this->serializer->method('toArray')->willReturn($serialized);
-        $this->json->expects(self::once())->method('setData')->with($serialized);
+        $this->challengeStorage->expects(self::once())->method('save')
+            ->with(ChallengeStorage::CEREMONY_LOGIN, 'email-challenge', 42);
+        $this->serializer->method('toArray')->willReturn(['challenge' => 'ZW1haWw']);
         $this->json->expects(self::never())->method('setHttpResponseCode');
 
         self::assertSame($this->json, $this->controller->execute());
     }
 
-    public function testUnknownEmailFallsBackToDiscoverableWithoutLeaking(): void
+    public function testUnknownEmailScopesChallengeToZero(): void
     {
         $this->config->method('isEnabled')->willReturn(true);
         $this->config->method('isPasswordlessAllowed')->willReturn(false);
         $this->request->method('getParam')->with('email', '')->willReturn('ghost@acme.test');
-
-        $store = $this->createMock(StoreInterface::class);
-        $store->method('getWebsiteId')->willReturn(1);
-        $this->storeManager->method('getStore')->willReturn($store);
+        $this->stubWebsite();
 
         $this->customerRepository->method('get')
             ->willThrowException(new NoSuchEntityException(__('No such entity.')));
 
-        // Unknown email resolves to null → discoverable options, indistinguishable
-        // from a known account with no passkeys. No error is emitted, but the request
-        // is scoped to 0 so the verify step rejects any asserted credential.
-        $this->optionsFactory->expects(self::once())->method('create')->with(null)
+        // Scope 0 makes the verify step reject any asserted credential.
+        $this->optionsFactory->expects(self::once())->method('create')->with()
             ->willReturn($this->options('ghost-challenge'));
-        $this->challengeStorage->expects(self::once())->method('save')->with('ghost-challenge', 0);
+        $this->challengeStorage->expects(self::once())->method('save')
+            ->with(ChallengeStorage::CEREMONY_LOGIN, 'ghost-challenge', 0);
         $this->serializer->method('toArray')->willReturn(['challenge' => 'Z2hvc3Q']);
         $this->json->expects(self::never())->method('setHttpResponseCode');
 
         self::assertSame($this->json, $this->controller->execute());
+    }
+
+    public function testKnownAndUnknownEmailYieldIdenticalPayload(): void
+    {
+        $known = $this->runForEmail('shopper@acme.test', 42);
+        $unknown = $this->runForEmail('ghost@acme.test', null);
+
+        unset($known['payload']['challenge'], $unknown['payload']['challenge']);
+        self::assertSame($known['payload'], $unknown['payload']);
+        self::assertArrayNotHasKey('allowCredentials', $known['payload']);
+        self::assertArrayNotHasKey('allowCredentials', $unknown['payload']);
+        self::assertSame(42, $known['scope']);
+        self::assertSame(0, $unknown['scope']);
+    }
+
+    /**
+     * Run the controller for one email against the real serializer and capture
+     * the response payload and the stored challenge scope.
+     *
+     * @return array{payload: array<string, mixed>, scope: int|null}
+     */
+    private function runForEmail(string $email, ?int $customerId): array
+    {
+        $config = $this->createStub(Config::class);
+        $config->method('isEnabled')->willReturn(true);
+        $config->method('isPasswordlessAllowed')->willReturn(false);
+        $config->method('getRpId')->willReturn('acme.test');
+        $config->method('getUserVerification')->willReturn(Config::USER_VERIFICATION_PREFERRED);
+        $config->method('getTimeout')->willReturn(60000);
+
+        $request = $this->createStub(RequestInterface::class);
+        $request->method('getParam')->willReturn($email);
+
+        $repository = $this->createStub(CustomerRepositoryInterface::class);
+        if ($customerId === null) {
+            $repository->method('get')->willThrowException(new NoSuchEntityException(__('No such entity.')));
+        } else {
+            $customer = $this->createStub(CustomerInterface::class);
+            $customer->method('getId')->willReturn($customerId);
+            $repository->method('get')->willReturn($customer);
+        }
+
+        $store = $this->createStub(StoreInterface::class);
+        $store->method('getWebsiteId')->willReturn(1);
+        $storeManager = $this->createStub(StoreManagerInterface::class);
+        $storeManager->method('getStore')->willReturn($store);
+
+        $captured = ['payload' => [], 'scope' => null];
+        $storage = $this->createStub(ChallengeStorage::class);
+        $storage->method('save')->willReturnCallback(
+            static function (string $ceremony, string $challenge, ?int $scope) use (&$captured): void {
+                $captured['scope'] = $scope;
+            }
+        );
+
+        $json = $this->createStub(Json::class);
+        $json->method('setData')->willReturnCallback(
+            static function (array $data) use (&$captured, $json): Json {
+                $captured['payload'] = $data;
+                return $json;
+            }
+        );
+        $jsonFactory = $this->createStub(JsonFactory::class);
+        $jsonFactory->method('create')->willReturn($json);
+
+        $limiter = $this->createStub(RateLimiter::class);
+        $limiter->method('registerAttempt')->willReturn(true);
+
+        (new Options(
+            $config,
+            new RequestOptionsFactory($config),
+            $storage,
+            new OptionsSerializer($config),
+            $repository,
+            $storeManager,
+            $request,
+            $jsonFactory,
+            $this->createStub(LoggerInterface::class),
+            $limiter
+        ))->execute();
+
+        return $captured;
+    }
+
+    private function stubWebsite(): void
+    {
+        $store = $this->createStub(StoreInterface::class);
+        $store->method('getWebsiteId')->willReturn(1);
+        $this->storeManager->method('getStore')->willReturn($store);
     }
 
     public function testReportsFailureWithoutLeakingDetails(): void

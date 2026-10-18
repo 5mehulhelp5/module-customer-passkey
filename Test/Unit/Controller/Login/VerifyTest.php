@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -22,6 +23,10 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
+use Magento\Framework\Stdlib\Cookie\PublicCookieMetadata;
+use Magento\Framework\Stdlib\CookieManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -29,13 +34,15 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialDescriptor;
-use Webauthn\PublicKeyCredentialSource;
 use Webauthn\TrustPath\EmptyTrustPath;
 
 #[AllowMockObjectsWithoutExpectations]
 class VerifyTest extends TestCase
 {
+    use MockCreationTrait;
+
     private const NIL_AAGUID = '00000000-0000-0000-0000-000000000000';
 
     /** @var Config&MockObject */
@@ -80,6 +87,12 @@ class VerifyTest extends TestCase
     /** @var Share&MockObject */
     private $shareConfig;
 
+    /** @var CookieManagerInterface&MockObject */
+    private $cookieManager;
+
+    /** @var CookieMetadataFactory&MockObject */
+    private $cookieMetadataFactory;
+
     /** @var Verify */
     private Verify $controller;
 
@@ -109,6 +122,9 @@ class VerifyTest extends TestCase
         $this->shareConfig = $this->createMock(Share::class);
         $this->shareConfig->method('isWebsiteScope')->willReturn(true);
 
+        $this->cookieManager = $this->createMock(CookieManagerInterface::class);
+        $this->cookieMetadataFactory = $this->createMock(CookieMetadataFactory::class);
+
         $this->json = $this->createMock(Json::class);
         $this->json->method('setHttpResponseCode')->willReturnSelf();
         $this->json->method('setData')->willReturnSelf();
@@ -130,7 +146,9 @@ class VerifyTest extends TestCase
             $this->storeManager,
             $this->authentication,
             $this->accountConfirmation,
-            $this->shareConfig
+            $this->shareConfig,
+            $this->cookieManager,
+            $this->cookieMetadataFactory
         );
     }
 
@@ -154,9 +172,9 @@ class VerifyTest extends TestCase
         ]);
     }
 
-    private function source(string $userHandle = '42'): PublicKeyCredentialSource
+    private function source(string $userHandle = '42'): CredentialRecord
     {
-        return PublicKeyCredentialSource::create(
+        return CredentialRecord::create(
             'raw-cred-id',
             PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
             [],
@@ -203,7 +221,9 @@ class VerifyTest extends TestCase
             $this->storeManager,
             $this->authentication,
             $this->accountConfirmation,
-            $this->shareConfig
+            $this->shareConfig,
+            $this->cookieManager,
+            $this->cookieMetadataFactory
         );
 
         $this->challengeStorage->expects(self::never())->method('consume');
@@ -310,7 +330,9 @@ class VerifyTest extends TestCase
     {
         $this->enabled();
         $this->payload();
-        $this->challengeStorage->method('consume')->willReturn(['challenge' => 'raw-challenge', 'scope' => null]);
+        $this->challengeStorage->expects(self::once())->method('consume')
+            ->with(ChallengeStorage::CEREMONY_LOGIN)
+            ->willReturn(['challenge' => 'raw-challenge', 'scope' => null]);
 
         $source = $this->source('42');
         $this->verifier->expects(self::once())->method('verify')
@@ -480,7 +502,94 @@ class VerifyTest extends TestCase
             $this->storeManager,
             $this->authentication,
             $this->accountConfirmation,
-            $this->shareConfig
+            $this->shareConfig,
+            $this->cookieManager,
+            $this->cookieMetadataFactory
         );
+    }
+
+    public function testRejectsRegisterMintedChallenge(): void
+    {
+        $this->enabled();
+        $this->payload();
+        $this->challengeStorage = $this->sessionBackedChallengeStorage();
+        $this->challengeStorage->save(ChallengeStorage::CEREMONY_REGISTER, 'register-challenge');
+
+        $this->verifier->expects(self::never())->method('verify');
+        $this->session->expects(self::never())->method('setCustomerDataAsLoggedIn');
+        $this->json->expects(self::once())->method('setHttpResponseCode')->with(400);
+
+        self::assertSame($this->json, $this->controllerWithEligibility()->execute());
+        self::assertNull($this->challengeStorage->consume(ChallengeStorage::CEREMONY_REGISTER));
+    }
+
+    /**
+     * A real ChallengeStorage over an in-memory customer-session slot.
+     */
+    private function sessionBackedChallengeStorage(): ChallengeStorage
+    {
+        $slot = [];
+        $session = $this->createPartialMockWithReflection(Session::class, ['getData', 'setData', 'unsetData']);
+        $session->method('getData')->willReturnCallback(static function ($key) use (&$slot) {
+            return $slot[$key] ?? null;
+        });
+        $session->method('setData')->willReturnCallback(static function ($key, $value) use (&$slot): void {
+            $slot[$key] = $value;
+        });
+        $session->method('unsetData')->willReturnCallback(static function ($key) use (&$slot): void {
+            unset($slot[$key]);
+        });
+
+        return new ChallengeStorage($session);
+    }
+
+    public function testDeletesPrivateContentCookieAfterLogin(): void
+    {
+        $this->arrangeValidLogin();
+        $this->cookieManager->method('getCookie')->with('mage-cache-sessid')->willReturn('1');
+
+        $metadata = $this->createMock(PublicCookieMetadata::class);
+        $metadata->expects(self::once())->method('setPath')->with('/')->willReturnSelf();
+        $this->cookieMetadataFactory->expects(self::once())->method('createCookieMetadata')
+            ->willReturn($metadata);
+        $this->cookieManager->expects(self::once())->method('deleteCookie')
+            ->with('mage-cache-sessid', $metadata);
+
+        self::assertSame($this->json, $this->controller->execute());
+    }
+
+    public function testLeavesCookiesAloneWhenPrivateContentCookieAbsent(): void
+    {
+        $this->arrangeValidLogin();
+        $this->cookieManager->method('getCookie')->with('mage-cache-sessid')->willReturn(null);
+
+        $this->cookieMetadataFactory->expects(self::never())->method('createCookieMetadata');
+        $this->cookieManager->expects(self::never())->method('deleteCookie');
+        $this->session->expects(self::once())->method('setCustomerDataAsLoggedIn');
+
+        self::assertSame($this->json, $this->controller->execute());
+    }
+
+    public function testKeepsPrivateContentCookieOnFailedAssertion(): void
+    {
+        $this->enabled();
+        $this->payload();
+        $this->challengeStorage->method('consume')->willReturn(['challenge' => 'raw-challenge', 'scope' => null]);
+        $this->verifier->method('verify')->willThrowException(new \RuntimeException('Invalid signature.'));
+        $this->cookieManager->method('getCookie')->willReturn('1');
+
+        $this->cookieManager->expects(self::never())->method('deleteCookie');
+        $this->json->expects(self::once())->method('setHttpResponseCode')->with(422);
+
+        self::assertSame($this->json, $this->controller->execute());
+    }
+
+    private function arrangeValidLogin(): void
+    {
+        $this->enabled();
+        $this->payload();
+        $this->challengeStorage->method('consume')->willReturn(['challenge' => 'raw-challenge', 'scope' => null]);
+        $this->verifier->method('verify')->willReturn($this->source('42'));
+        $this->customerRepository->method('getById')->with(42)->willReturn($this->eligibleCustomer());
     }
 }

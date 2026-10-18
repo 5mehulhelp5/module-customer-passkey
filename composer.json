@@ -7,7 +7,17 @@
     "require": {
         "php": "~8.3.0||~8.4.0||~8.5.0",
         "magento/framework": ">=103.0",
-        "web-auth/webauthn-lib": "^4.0"
+        "magento/module-backend": "^102.0",
+        "magento/module-config": "^101.2",
+        "magento/module-customer": "^103.0",
+        "magento/module-email": "^101.1",
+        "magento/module-store": "^101.1",
+        "magento/module-ui": "^101.2",
+        "psr/log": "^1.0|^2.0|^3.0",
+        "symfony/serializer": "^6.4|^7.0|^8.0",
+        "symfony/uid": "^6.4|^7.0|^8.0",
+        "web-auth/cose-lib": "^4.8",
+        "web-auth/webauthn-lib": "^5.3.5"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.0"

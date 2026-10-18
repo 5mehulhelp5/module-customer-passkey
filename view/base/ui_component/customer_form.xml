@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
+ */
+-->
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <htmlContent name="dmlab_customer_passkey_tab_content">
+        <block class="DmLab\CustomerPasskey\Block\Adminhtml\Customer\Edit\Tab\Passkeys"
+               name="dmlab_customer_passkey_tab"/>
+    </htmlContent>
+</form>

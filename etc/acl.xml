@@ -2,6 +2,7 @@
 <!--
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,10 +10,17 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
+                <resource id="Magento_Customer::customer">
+                    <resource id="Magento_Customer::manage">
+                        <resource id="DmLab_CustomerPasskey::manage" title="Manage Customer Passkeys"
+                                  translate="title" sortOrder="100"/>
+                    </resource>
+                </resource>
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="DmLab_CustomerPasskey::config" title="Customer Passkey Section" sortOrder="30"/>
+                            <resource id="DmLab_CustomerPasskey::config" title="Customer Passkey Section"
+                                      sortOrder="30"/>
                         </resource>
                     </resource>
                 </resource>

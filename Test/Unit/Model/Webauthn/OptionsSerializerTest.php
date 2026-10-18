@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\CustomerPasskey\Test\Unit\Model\Webauthn;
 
+use DmLab\CustomerPasskey\Model\Config;
 use DmLab\CustomerPasskey\Model\Webauthn\OptionsSerializer;
 use PHPUnit\Framework\TestCase;
 use Webauthn\PublicKeyCredentialCreationOptions;
@@ -17,10 +19,20 @@ use Webauthn\PublicKeyCredentialUserEntity;
 
 class OptionsSerializerTest extends TestCase
 {
+    /** @var OptionsSerializer */
+    private OptionsSerializer $serializer;
+
+    protected function setUp(): void
+    {
+        $config = $this->createStub(Config::class);
+        $config->method('getRpDisplayName')->willReturn('Acme');
+        $this->serializer = new OptionsSerializer($config);
+    }
+
     public function testSerializesCreationOptionsToBrowserJsonShape(): void
     {
         $options = PublicKeyCredentialCreationOptions::create(
-            PublicKeyCredentialRpEntity::create('Acme', 'acme.test'),
+            PublicKeyCredentialRpEntity::create('', 'acme.test'),
             PublicKeyCredentialUserEntity::create('shopper@acme.test', '42', 'Jane Shopper'),
             'challenge-bytes',
             [PublicKeyCredentialParameters::createPk(-7)],
@@ -28,7 +40,7 @@ class OptionsSerializerTest extends TestCase
             PublicKeyCredentialCreationOptions::ATTESTATION_CONVEYANCE_PREFERENCE_NONE
         );
 
-        $array = (new OptionsSerializer())->toArray($options);
+        $array = $this->serializer->toArray($options);
 
         self::assertSame('acme.test', $array['rp']['id']);
         self::assertSame('Acme', $array['rp']['name']);
@@ -56,7 +68,7 @@ class OptionsSerializerTest extends TestCase
             45000
         );
 
-        $array = (new OptionsSerializer())->toArray($options);
+        $array = $this->serializer->toArray($options);
 
         self::assertSame('acme.test', $array['rpId']);
         self::assertSame('required', $array['userVerification']);
@@ -72,7 +84,7 @@ class OptionsSerializerTest extends TestCase
     {
         $options = PublicKeyCredentialRequestOptions::create('c', 'acme.test');
 
-        $array = (new OptionsSerializer())->toArray($options);
+        $array = $this->serializer->toArray($options);
 
         self::assertArrayNotHasKey('allowCredentials', $array);
         self::assertArrayNotHasKey('timeout', $array);
@@ -82,7 +94,7 @@ class OptionsSerializerTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        (new OptionsSerializer())->toArray(
+        $this->serializer->toArray(
             $this->createStub(\Webauthn\PublicKeyCredentialOptions::class)
         );
     }

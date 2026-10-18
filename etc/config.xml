@@ -2,6 +2,7 @@
 <!--
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -14,7 +15,14 @@
                 <authenticator_attachment>any</authenticator_attachment>
                 <timeout>60000</timeout>
                 <allow_passwordless>1</allow_passwordless>
+                <reauth_window>300</reauth_window>
             </general>
+            <notification>
+                <enabled>1</enabled>
+                <identity>general</identity>
+                <added_template>dmlab_customer_passkey_notification_added_template</added_template>
+                <removed_template>dmlab_customer_passkey_notification_removed_template</removed_template>
+            </notification>
         </dmlab_customer_passkey>
     </default>
 </config>

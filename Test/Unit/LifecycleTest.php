@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -13,6 +14,7 @@ use DmLab\CustomerPasskey\Model\Authentication\AssertionVerifier;
 use DmLab\CustomerPasskey\Model\Config;
 use DmLab\CustomerPasskey\Model\Credential;
 use DmLab\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\Notification\PasskeyNotifier;
 use DmLab\CustomerPasskey\Model\Registration\AttestationVerifier;
 use DmLab\CustomerPasskey\Model\Security\RateLimiter;
 use DmLab\CustomerPasskey\Model\Webauthn\ChallengeStorage;
@@ -26,6 +28,8 @@ use Magento\Customer\Model\Session;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
+use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -33,8 +37,8 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialDescriptor;
-use Webauthn\PublicKeyCredentialSource;
 use Webauthn\TrustPath\EmptyTrustPath;
 
 /**
@@ -125,9 +129,9 @@ class LifecycleTest extends TestCase
         $this->sourceRepository = new CredentialSourceRepository($this->store, $dateTime);
     }
 
-    private function source(int $counter): PublicKeyCredentialSource
+    private function source(int $counter): CredentialRecord
     {
-        return PublicKeyCredentialSource::create(
+        return CredentialRecord::create(
             self::RAW_CREDENTIAL_ID,
             PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
             [],
@@ -193,7 +197,8 @@ class LifecycleTest extends TestCase
         $attestation->method('verify')->willReturn($this->source(0));
 
         $registerChallenge = $this->createMock(ChallengeStorage::class);
-        $registerChallenge->method('consume')->willReturn(['challenge' => 'reg-challenge', 'scope' => null]);
+        $registerChallenge->method('consume')
+            ->willReturn(['challenge' => 'reg-challenge', 'scope' => self::CUSTOMER_ID]);
 
         $registerConfig = $this->createMock(Config::class);
         $registerConfig->method('isEnabled')->willReturn(true);
@@ -208,7 +213,8 @@ class LifecycleTest extends TestCase
             $this->sourceRepository,
             $this->jsonFactory($registerJson),
             $this->createMock(LoggerInterface::class),
-            $this->allowingLimiter()
+            $this->allowingLimiter(),
+            $this->createStub(PasskeyNotifier::class)
         );
 
         $registerJson->expects(self::never())->method('setHttpResponseCode');
@@ -267,7 +273,9 @@ class LifecycleTest extends TestCase
             $storeManager,
             $authentication,
             $accountConfirmation,
-            $shareConfig
+            $shareConfig,
+            $this->createStub(CookieManagerInterface::class),
+            $this->createStub(CookieMetadataFactory::class)
         );
 
         $loginSession->expects(self::once())->method('setCustomerDataAsLoggedIn')->with($customer);
@@ -290,6 +298,7 @@ class LifecycleTest extends TestCase
         $deleteSession = $this->createMock(Session::class);
         $deleteSession->method('isLoggedIn')->willReturn(true);
         $deleteSession->method('getCustomerId')->willReturn(self::CUSTOMER_ID);
+        $deleteSession->method('getCustomerData')->willReturn($customer);
 
         $deleteRequest = $this->createMock(RequestInterface::class);
         $deleteRequest->method('getParam')->with('entity_id', 0)->willReturn($entityId);
@@ -299,7 +308,8 @@ class LifecycleTest extends TestCase
             $deleteSession,
             $deleteRequest,
             $this->store,
-            $this->jsonFactory($deleteJson)
+            $this->jsonFactory($deleteJson),
+            $this->createStub(PasskeyNotifier::class)
         );
 
         $deleteJson->expects(self::never())->method('setHttpResponseCode');

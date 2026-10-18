@@ -1,0 +1,60 @@
+<?php
+/**
+ * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
+ *
+ * Admin customer edit "Passkeys" tab: the customer's passkeys with a Revoke action each.
+ *
+ * @var \DmLab\CustomerPasskey\Block\Adminhtml\Customer\Edit\Tab\Passkeys $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+$confirm = $escaper->escapeJs(__('Revoke this passkey? The customer will no longer be able to sign in with it.'));
+?>
+<div class="fieldset-wrapper dmlab-customer-passkey-admin">
+    <div class="fieldset-wrapper-title">
+        <span class="title"><?= $escaper->escapeHtml(__('Passkeys')) ?></span>
+    </div>
+    <?php if ($block->getPasskeys()): ?>
+        <table class="data-grid">
+            <thead>
+                <tr>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Name')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Added')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Last used')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('AAGUID')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Action')) ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($block->getPasskeys() as $passkey): ?>
+                    <tr>
+                        <td><?= $escaper->escapeHtml($block->getLabel($passkey)) ?></td>
+                        <td><?= $escaper->escapeHtml($block->renderDate($passkey->createdAt)) ?></td>
+                        <td><?= $escaper->escapeHtml($block->renderDate($passkey->lastUsedAt)) ?></td>
+                        <td><?= $escaper->escapeHtml($passkey->aaguid ?? '—') ?></td>
+                        <td>
+                            <form class="dmlab-customer-passkey-revoke" method="post"
+                                  action="<?= $escaper->escapeUrl($block->getRevokeUrl()) ?>">
+                                <input type="hidden" name="form_key"
+                                       value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                                <input type="hidden" name="customer_id" value="<?= (int)$block->getCustomerId() ?>"/>
+                                <input type="hidden" name="entity_id" value="<?= (int)$passkey->entityId ?>"/>
+                                <button type="submit" class="action-secondary">
+                                    <span><?= $escaper->escapeHtml(__('Revoke')) ?></span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
+            'onsubmit',
+            "return confirm('" . $confirm . "')",
+            '.dmlab-customer-passkey-revoke'
+        ) ?>
+    <?php else: ?>
+        <p><?= $escaper->escapeHtml(__('This customer has no passkeys.')) ?></p>
+    <?php endif; ?>
+</div>

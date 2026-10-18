@@ -1,15 +1,21 @@
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
  * Discoverable ("Sign in with a passkey") storefront login for the Luma theme.
  *
  * Fetches PublicKeyCredentialRequestOptions from the options endpoint, runs the
  * WebAuthn assertion ceremony via navigator.credentials.get() with no
  * allowCredentials (a resident passkey is offered without an email), posts the
- * assertion to the verify endpoint, and reloads on success. Bound with
+ * assertion to the verify endpoint, and on success invalidates private content
+ * (customer sections) and reloads. Bound with
  * data-mage-init from passkey-button.phtml.
  */
-define(['jquery', 'mage/translate'], function ($, $t) {
+define([
+    'jquery',
+    'mage/translate',
+    'Magento_Customer/js/customer-data'
+], function ($, $t, customerData) {
     'use strict';
 
     /**
@@ -142,6 +148,7 @@ define(['jquery', 'mage/translate'], function ($, $t) {
                 });
             }).then(function (result) {
                 if (result && result.success) {
+                    customerData.invalidate(['*']);
                     window.location.reload();
 
                     return;

@@ -1,10 +1,12 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
  * My Account "Passkeys" section: lists the customer's registered passkeys with
  * add-new (registration ceremony), rename and delete. Add is hidden when the
- * module is disabled.
+ * module is disabled; its password field appears only when the server asks to
+ * re-authenticate.
  *
  * @var \DmLab\CustomerPasskey\Block\Manage\ListPasskeys $block
  * @var \Magento\Framework\Escaper $escaper
@@ -57,6 +59,20 @@ $mageInit = '{"DmLab_CustomerPasskey/js/passkey-manage": ' . $block->getJsonConf
         <?php endif; ?>
 
         <?php if ($block->isEnabled()): ?>
+            <div class="field password dmlab-customer-passkey-reauth"
+                 data-role="passkey-reauth"
+                 style="display: none;">
+                <label class="label" for="dmlab-customer-passkey-password">
+                    <span><?= $escaper->escapeHtml(__('Current Password')) ?></span>
+                </label>
+                <div class="control">
+                    <input type="password"
+                           id="dmlab-customer-passkey-password"
+                           class="input-text"
+                           autocomplete="current-password"
+                           data-role="passkey-password"/>
+                </div>
+            </div>
             <div class="actions-toolbar">
                 <div class="primary">
                     <button type="button"

@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -8,58 +9,25 @@ namespace DmLab\CustomerPasskey\Test\Unit\Model\Authentication;
 
 use DmLab\CustomerPasskey\Model\Authentication\RequestOptionsFactory;
 use DmLab\CustomerPasskey\Model\Config;
-use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Uid\Uuid;
-use Webauthn\PublicKeyCredentialDescriptor;
-use Webauthn\PublicKeyCredentialSource;
-use Webauthn\TrustPath\EmptyTrustPath;
 
-#[AllowMockObjectsWithoutExpectations]
 class RequestOptionsFactoryTest extends TestCase
 {
-    /** @var Config&MockObject */
-    private $config;
-
-    /** @var CredentialSourceRepository&MockObject */
-    private $sourceRepository;
-
     /** @var RequestOptionsFactory */
     private RequestOptionsFactory $factory;
 
     protected function setUp(): void
     {
-        $this->config = $this->createMock(Config::class);
-        $this->sourceRepository = $this->createMock(CredentialSourceRepository::class);
+        $config = $this->createStub(Config::class);
+        $config->method('getRpId')->willReturn('acme.test');
+        $config->method('getUserVerification')->willReturn(Config::USER_VERIFICATION_REQUIRED);
+        $config->method('getTimeout')->willReturn(45000);
 
-        $this->config->method('getRpId')->willReturn('acme.test');
-        $this->config->method('getUserVerification')->willReturn(Config::USER_VERIFICATION_REQUIRED);
-        $this->config->method('getTimeout')->willReturn(45000);
-
-        $this->factory = new RequestOptionsFactory($this->config, $this->sourceRepository);
+        $this->factory = new RequestOptionsFactory($config);
     }
 
-    private function source(string $rawId, array $transports = []): PublicKeyCredentialSource
+    public function testOptionsAreDiscoverableFromConfig(): void
     {
-        return PublicKeyCredentialSource::create(
-            $rawId,
-            PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
-            $transports,
-            'none',
-            EmptyTrustPath::create(),
-            Uuid::fromString('00000000-0000-0000-0000-000000000000'),
-            'cose-key',
-            '42',
-            0
-        );
-    }
-
-    public function testDiscoverableOptionsHaveEmptyAllowCredentials(): void
-    {
-        $this->sourceRepository->expects(self::never())->method('findAllForUserEntity');
-
         $options = $this->factory->create();
 
         self::assertSame('acme.test', $options->rpId);
@@ -69,66 +37,26 @@ class RequestOptionsFactoryTest extends TestCase
         self::assertSame(32, strlen($options->challenge));
     }
 
-    public function testEmailFirstOptionsScopeAllowCredentialsToCustomer(): void
+    public function testAllowCredentialsEmptyForAnyStore(): void
     {
-        $this->sourceRepository->expects(self::once())
-            ->method('findAllForUserEntity')
-            ->with(self::callback(static fn($user): bool => $user->id === '42'))
-            ->willReturn([
-                $this->source('raw-id-one', ['internal']),
-                $this->source('raw-id-two', ['hybrid', 'usb']),
-            ]);
-
-        $options = $this->factory->create(42);
-
-        self::assertCount(2, $options->allowCredentials);
-        self::assertContainsOnlyInstancesOf(
-            PublicKeyCredentialDescriptor::class,
-            $options->allowCredentials
-        );
-        self::assertSame('raw-id-one', $options->allowCredentials[0]->id);
-        self::assertSame(['internal'], $options->allowCredentials[0]->transports);
-        self::assertSame('raw-id-two', $options->allowCredentials[1]->id);
-    }
-
-    public function testCustomerWithoutPasskeysGetsEmptyAllowCredentials(): void
-    {
-        $this->sourceRepository->method('findAllForUserEntity')->willReturn([]);
-
-        $options = $this->factory->create(7);
-
-        self::assertSame([], $options->allowCredentials);
-    }
-
-    public function testNonPositiveCustomerIdIsTreatedAsDiscoverable(): void
-    {
-        $this->sourceRepository->expects(self::never())->method('findAllForUserEntity');
-
-        $options = $this->factory->create(0);
-
-        self::assertSame([], $options->allowCredentials);
+        self::assertSame([], $this->factory->create(1)->allowCredentials);
+        self::assertSame([], $this->factory->create('default')->allowCredentials);
     }
 
     public function testRpIdIsNullWhenHostUnresolvable(): void
     {
-        $config = $this->createMock(Config::class);
+        $config = $this->createStub(Config::class);
         $config->method('getRpId')->willReturn('');
         $config->method('getUserVerification')->willReturn(Config::USER_VERIFICATION_PREFERRED);
         $config->method('getTimeout')->willReturn(60000);
 
-        $factory = new RequestOptionsFactory($config, $this->sourceRepository);
-        $options = $factory->create();
+        $options = (new RequestOptionsFactory($config))->create();
 
         self::assertNull($options->rpId);
     }
 
     public function testChallengeIsFreshEachCall(): void
     {
-        $this->sourceRepository->method('findAllForUserEntity')->willReturn([]);
-
-        $first = $this->factory->create()->challenge;
-        $second = $this->factory->create()->challenge;
-
-        self::assertNotSame($first, $second);
+        self::assertNotSame($this->factory->create()->challenge, $this->factory->create()->challenge);
     }
 }

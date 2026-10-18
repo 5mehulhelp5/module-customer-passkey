@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -9,6 +10,8 @@ namespace DmLab\CustomerPasskey\Test\Unit\Controller\Manage;
 use DmLab\CustomerPasskey\Controller\Manage\Delete;
 use DmLab\CustomerPasskey\Model\Credential;
 use DmLab\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\Notification\PasskeyNotifier;
+use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
@@ -32,6 +35,9 @@ class DeleteTest extends TestCase
     /** @var Json&MockObject */
     private $json;
 
+    /** @var PasskeyNotifier&MockObject */
+    private $notifier;
+
     /** @var Delete */
     private Delete $controller;
 
@@ -48,7 +54,15 @@ class DeleteTest extends TestCase
         $jsonFactory = $this->createStub(JsonFactory::class);
         $jsonFactory->method('create')->willReturn($this->json);
 
-        $this->controller = new Delete($this->session, $this->request, $this->credentials, $jsonFactory);
+        $this->notifier = $this->createMock(PasskeyNotifier::class);
+
+        $this->controller = new Delete(
+            $this->session,
+            $this->request,
+            $this->credentials,
+            $jsonFactory,
+            $this->notifier
+        );
     }
 
     private function loginAs(int $customerId = 42): void
@@ -70,6 +84,7 @@ class DeleteTest extends TestCase
 
         $this->credentials->expects(self::never())->method('findOwnedByCustomer');
         $this->credentials->expects(self::never())->method('delete');
+        $this->notifier->expects(self::never())->method('notifyRemoved');
         $this->json->expects(self::once())->method('setHttpResponseCode')->with(403);
 
         self::assertSame($this->json, $this->controller->execute());
@@ -83,6 +98,7 @@ class DeleteTest extends TestCase
             ->with(42, 99)->willReturn(null);
 
         $this->credentials->expects(self::never())->method('delete');
+        $this->notifier->expects(self::never())->method('notifyRemoved');
         $this->json->expects(self::once())->method('setHttpResponseCode')->with(404);
 
         self::assertSame($this->json, $this->controller->execute());
@@ -92,10 +108,13 @@ class DeleteTest extends TestCase
     {
         $this->loginAs();
         $this->withEntityId(7);
-        $credential = new Credential(entityId: 7, customerId: 42, credentialId: 'a');
+        $credential = new Credential(entityId: 7, customerId: 42, credentialId: 'a', label: 'My laptop');
         $this->credentials->method('findOwnedByCustomer')->with(42, 7)->willReturn($credential);
+        $customer = $this->createStub(CustomerInterface::class);
+        $this->session->method('getCustomerData')->willReturn($customer);
 
         $this->credentials->expects(self::once())->method('delete')->with($credential);
+        $this->notifier->expects(self::once())->method('notifyRemoved')->with($customer, 'My laptop');
         $this->json->expects(self::never())->method('setHttpResponseCode');
         $this->json->expects(self::once())->method('setData')
             ->with(self::callback(static fn(array $d): bool => $d['success'] === true));

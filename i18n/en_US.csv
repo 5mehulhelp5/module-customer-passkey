@@ -1,0 +1,86 @@
+Passkey,Passkey
+Passkeys,Passkeys
+"Sign in with a passkey","Sign in with a passkey"
+"Passkey not found.","Passkey not found."
+"The passkey has been revoked.","The passkey has been revoked."
+"Passkey sign-in is not available.","Passkey sign-in is not available."
+"Too many passkey attempts. Please wait and try again.","Too many passkey attempts. Please wait and try again."
+"Please enter your email to sign in with a passkey.","Please enter your email to sign in with a passkey."
+"Could not start passkey sign-in. Please try again.","Could not start passkey sign-in. Please try again."
+"Invalid passkey payload.","Invalid passkey payload."
+"Your passkey sign-in expired. Please try again.","Your passkey sign-in expired. Please try again."
+"Could not sign you in with that passkey. Please try again.","Could not sign you in with that passkey. Please try again."
+"Signed in.","Signed in."
+"This passkey cannot be used to sign in here.","This passkey cannot be used to sign in here."
+"This account is locked.","This account is locked."
+"This account is not confirmed.","This account is not confirmed."
+"Please sign in to manage your passkeys.","Please sign in to manage your passkeys."
+"Passkey removed.","Passkey removed."
+"Passkey renamed.","Passkey renamed."
+"Passkeys are not available.","Passkeys are not available."
+"Please sign in to add a passkey.","Please sign in to add a passkey."
+"Could not start passkey registration. Please try again.","Could not start passkey registration. Please try again."
+"The password is incorrect. No password (e.g. SSO)? Sign out and sign in again.","The password is incorrect. No password (e.g. SSO)? Sign out and sign in again."
+"Confirm your password to add a passkey. No password (e.g. SSO)? Sign out and sign in again.","Confirm your password to add a passkey. No password (e.g. SSO)? Sign out and sign in again."
+"Your passkey registration expired. Please try again.","Your passkey registration expired. Please try again."
+"Could not verify your passkey. Please try again.","Could not verify your passkey. Please try again."
+"This passkey is already registered.","This passkey is already registered."
+"Passkey added.","Passkey added."
+Any,Any
+"Platform (Touch ID, Windows Hello)","Platform (Touch ID, Windows Hello)"
+"Cross-platform (security key)","Cross-platform (security key)"
+Required,Required
+Preferred,Preferred
+Discouraged,Discouraged
+"Revoke this passkey? The customer will no longer be able to sign in with it.","Revoke this passkey? The customer will no longer be able to sign in with it."
+Name,Name
+Added,Added
+"Last used","Last used"
+AAGUID,AAGUID
+Action,Action
+Revoke,Revoke
+"This customer has no passkeys.","This customer has no passkeys."
+"Signing in…","Signing in…"
+"Passkeys are not supported on this browser.","Passkeys are not supported on this browser."
+"Could not sign you in with a passkey. Please try again.","Could not sign you in with a passkey. Please try again."
+Actions,Actions
+Rename,Rename
+Delete,Delete
+"You have no passkeys yet.","You have no passkeys yet."
+"Current Password","Current Password"
+"Add a passkey","Add a passkey"
+"A passkey was added to your %store_name account","A passkey was added to your %store_name account"
+"%name,","%name,"
+"A new passkey ""%label"" was added to your account at %store_name.","A new passkey ""%label"" was added to your account at %store_name."
+"If you did not add it, remove it from <a href=""%manage_url"">your passkeys</a> and change your password.","If you did not add it, remove it from <a href=""%manage_url"">your passkeys</a> and change your password."
+"A passkey was removed from your %store_name account","A passkey was removed from your %store_name account"
+"The passkey ""%label"" was removed from your account at %store_name and can no longer be used to sign in.","The passkey ""%label"" was removed from your account at %store_name and can no longer be used to sign in."
+"If you did not remove it, review <a href=""%manage_url"">your passkeys</a> and change your password.","If you did not remove it, review <a href=""%manage_url"">your passkeys</a> and change your password."
+"Something went wrong. Please try again.","Something went wrong. Please try again."
+"New passkey name","New passkey name"
+"Remove this passkey?","Remove this passkey?"
+"Manage Customer Passkeys","Manage Customer Passkeys"
+DMLab,DMLab
+"Customer Passkey","Customer Passkey"
+General,General
+"Enable Passkey Login","Enable Passkey Login"
+"Relying Party Display Name","Relying Party Display Name"
+"Name the authenticator shows during a ceremony. Defaults to the store name.","Name the authenticator shows during a ceremony. Defaults to the store name."
+"User Verification","User Verification"
+"Whether the authenticator must verify the user (PIN/biometric) during a ceremony.","Whether the authenticator must verify the user (PIN/biometric) during a ceremony."
+"Authenticator Attachment","Authenticator Attachment"
+"Which class of authenticator to steer customers toward. ""Any"" applies no restriction.","Which class of authenticator to steer customers toward. ""Any"" applies no restriction."
+"Ceremony Timeout (ms)","Ceremony Timeout (ms)"
+"Time the browser waits for the authenticator, in milliseconds. Defaults to 60000.","Time the browser waits for the authenticator, in milliseconds. Defaults to 60000."
+"Allow Passwordless Sign-In","Allow Passwordless Sign-In"
+"Offers usernameless ""Sign in with a passkey"" using discoverable credentials.","Offers usernameless ""Sign in with a passkey"" using discoverable credentials."
+"Re-authentication Window (s)","Re-authentication Window (s)"
+"Adding a passkey this soon after sign-in needs no password. Defaults to 300.","Adding a passkey this soon after sign-in needs no password. Defaults to 300."
+Notifications,Notifications
+"Email Customer on Passkey Changes","Email Customer on Passkey Changes"
+"Sends an email whenever a passkey is added to or removed from the account.","Sends an email whenever a passkey is added to or removed from the account."
+"Email Sender","Email Sender"
+"Passkey Added Template","Passkey Added Template"
+"Email template chosen based on theme fallback when ""Default"" option is selected.","Email template chosen based on theme fallback when ""Default"" option is selected."
+"Passkey Removed Template","Passkey Removed Template"
+"My Passkeys","My Passkeys"

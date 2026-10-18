@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -22,9 +23,11 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
+use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
-use Webauthn\PublicKeyCredentialSource;
+use Webauthn\CredentialRecord;
 
 /**
  * Completes a passwordless storefront login: validates the assertion the
@@ -46,6 +49,9 @@ class Verify implements HttpPostActionInterface
     private const RATE_MAX_ATTEMPTS = 10;
     private const RATE_WINDOW_SECONDS = 60;
 
+    /** Private-content cache marker; deleting it makes the storefront reload customer sections. */
+    private const PRIVATE_CONTENT_COOKIE = 'mage-cache-sessid';
+
     /**
      * @param Config $config
      * @param Session $customerSession
@@ -61,6 +67,8 @@ class Verify implements HttpPostActionInterface
      * @param AuthenticationInterface $authentication
      * @param AccountConfirmation $accountConfirmation
      * @param Share $shareConfig
+     * @param CookieManagerInterface $cookieManager
+     * @param CookieMetadataFactory $cookieMetadataFactory
      */
     public function __construct(
         private readonly Config $config,
@@ -76,7 +84,9 @@ class Verify implements HttpPostActionInterface
         private readonly StoreManagerInterface $storeManager,
         private readonly AuthenticationInterface $authentication,
         private readonly AccountConfirmation $accountConfirmation,
-        private readonly Share $shareConfig
+        private readonly Share $shareConfig,
+        private readonly CookieManagerInterface $cookieManager,
+        private readonly CookieMetadataFactory $cookieMetadataFactory
     ) {
     }
 
@@ -109,7 +119,7 @@ class Verify implements HttpPostActionInterface
             return $this->error($result, 400, __('Invalid passkey payload.'));
         }
 
-        $pending = $this->challengeStorage->consume();
+        $pending = $this->challengeStorage->consume(ChallengeStorage::CEREMONY_LOGIN);
         if ($pending === null || $pending['challenge'] === '') {
             return $this->error($result, 400, __('Your passkey sign-in expired. Please try again.'));
         }
@@ -130,17 +140,33 @@ class Verify implements HttpPostActionInterface
     /**
      * Load the owning customer and start an authenticated storefront session.
      *
-     * Regenerates the session id (native login semantics).
+     * Regenerates the session id and drops the private-content cookie (native
+     * login semantics), so cached guest sections are not shown to the customer.
      *
-     * @param PublicKeyCredentialSource $source
+     * @param CredentialRecord $source
      * @throws \Magento\Framework\Exception\NoSuchEntityException when the owner is gone
      * @throws LocalizedException when the account is not eligible to sign in
      */
-    private function login(PublicKeyCredentialSource $source): void
+    private function login(CredentialRecord $source): void
     {
         $customer = $this->customerRepository->getById((int)$source->userHandle);
         $this->assertEligible($customer);
         $this->customerSession->setCustomerDataAsLoggedIn($customer);
+        $this->invalidatePrivateContent();
+    }
+
+    /**
+     * Delete the private-content cookie, mirroring native `LoginPost`.
+     */
+    private function invalidatePrivateContent(): void
+    {
+        if (!$this->cookieManager->getCookie(self::PRIVATE_CONTENT_COOKIE)) {
+            return;
+        }
+
+        $metadata = $this->cookieMetadataFactory->createCookieMetadata();
+        $metadata->setPath('/');
+        $this->cookieManager->deleteCookie(self::PRIVATE_CONTENT_COOKIE, $metadata);
     }
 
     /**

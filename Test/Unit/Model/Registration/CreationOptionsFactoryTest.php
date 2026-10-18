@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -16,11 +17,11 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 use Webauthn\AuthenticatorSelectionCriteria;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\PublicKeyCredentialDescriptor;
 use Webauthn\PublicKeyCredentialParameters;
 use Webauthn\PublicKeyCredentialRpEntity;
-use Webauthn\PublicKeyCredentialSource;
 use Webauthn\TrustPath\EmptyTrustPath;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -45,7 +46,7 @@ class CreationOptionsFactoryTest extends TestCase
         $this->sourceRepository = $this->createMock(CredentialSourceRepository::class);
 
         $this->rpFactory->method('create')
-            ->willReturn(PublicKeyCredentialRpEntity::create('Acme', 'acme.test'));
+            ->willReturn(PublicKeyCredentialRpEntity::create('', 'acme.test'));
         $this->config->method('getTimeout')->willReturn(45000);
         $this->config->method('getUserVerification')->willReturn(Config::USER_VERIFICATION_REQUIRED);
         $this->config->method('getAuthenticatorAttachment')->willReturn(Config::ATTACHMENT_ANY);
@@ -58,9 +59,9 @@ class CreationOptionsFactoryTest extends TestCase
         );
     }
 
-    private function source(string $rawId, array $transports = []): PublicKeyCredentialSource
+    private function source(string $rawId, array $transports = []): CredentialRecord
     {
-        return PublicKeyCredentialSource::create(
+        return CredentialRecord::create(
             $rawId,
             PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
             $transports,
@@ -109,13 +110,14 @@ class CreationOptionsFactoryTest extends TestCase
         );
         // "any" attachment maps to no preference (criterion omitted).
         self::assertNull($options->authenticatorSelection->authenticatorAttachment);
+        // Discoverable-only login: resident key required even with passwordless off.
         self::assertSame(
-            AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_NO_PREFERENCE,
+            AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED,
             $options->authenticatorSelection->residentKey
         );
     }
 
-    public function testPlatformAttachmentAndPasswordlessRequestResidentKey(): void
+    public function testPlatformAttachmentWithPasswordlessRequiresResidentKey(): void
     {
         $config = $this->createMock(Config::class);
         $config->method('getTimeout')->willReturn(60000);
@@ -132,7 +134,7 @@ class CreationOptionsFactoryTest extends TestCase
             $options->authenticatorSelection->authenticatorAttachment
         );
         self::assertSame(
-            AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_PREFERRED,
+            AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED,
             $options->authenticatorSelection->residentKey
         );
     }

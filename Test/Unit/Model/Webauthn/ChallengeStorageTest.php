@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -46,49 +47,114 @@ class ChallengeStorageTest extends TestCase
 
     public function testChallengeIsConsumedOnce(): void
     {
-        $this->storage->save('challenge-bytes');
+        $this->storage->save(ChallengeStorage::CEREMONY_REGISTER, 'challenge-bytes');
 
         self::assertSame(
             ['challenge' => 'challenge-bytes', 'scope' => null],
-            $this->storage->consume()
+            $this->storage->consume(ChallengeStorage::CEREMONY_REGISTER)
         );
         // Single-use: a replayed ceremony finds nothing.
-        self::assertNull($this->storage->consume());
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_REGISTER));
+    }
+
+    public function testLoginChallengeRoundTrips(): void
+    {
+        $this->storage->save(ChallengeStorage::CEREMONY_LOGIN, 'login-bytes');
+
+        self::assertSame(
+            ['challenge' => 'login-bytes', 'scope' => null],
+            $this->storage->consume(ChallengeStorage::CEREMONY_LOGIN)
+        );
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_LOGIN));
     }
 
     public function testConsumeWithoutSaveReturnsNull(): void
     {
-        self::assertNull($this->storage->consume());
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_LOGIN));
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_REGISTER));
+    }
+
+    public function testLoginChallengeCannotCompleteRegistration(): void
+    {
+        $this->storage->save(ChallengeStorage::CEREMONY_LOGIN, 'login-bytes', 42);
+
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_REGISTER));
+        // The mismatch burns the slot — the challenge cannot be retried for login either.
+        self::assertSame([], $this->store);
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_LOGIN));
+    }
+
+    public function testRegisterChallengeCannotCompleteLogin(): void
+    {
+        $this->storage->save(ChallengeStorage::CEREMONY_REGISTER, 'register-bytes');
+
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_LOGIN));
+        self::assertSame([], $this->store);
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_REGISTER));
+    }
+
+    public function testSlotWithoutCeremonyIsRejected(): void
+    {
+        // Pre-upgrade session format: no ceremony type.
+        $this->store['dmlab_customer_passkey_challenge'] = (string)json_encode([
+            'c' => base64_encode('legacy'),
+            's' => null,
+        ]);
+
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_LOGIN));
+        self::assertSame([], $this->store);
+    }
+
+    public function testCorruptSlotIsRejectedAndCleared(): void
+    {
+        foreach (['not-json', (string)json_encode(['c' => 1, 't' => ChallengeStorage::CEREMONY_LOGIN])] as $slot) {
+            $this->store['dmlab_customer_passkey_challenge'] = $slot;
+
+            self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_LOGIN));
+            self::assertSame([], $this->store);
+        }
     }
 
     public function testBinaryChallengeRoundTrips(): void
     {
         $raw = "\x00\x01\xff\xfe\x10challenge";
-        $this->storage->save($raw);
+        $this->storage->save(ChallengeStorage::CEREMONY_REGISTER, $raw);
 
-        self::assertSame(['challenge' => $raw, 'scope' => null], $this->storage->consume());
+        self::assertSame(
+            ['challenge' => $raw, 'scope' => null],
+            $this->storage->consume(ChallengeStorage::CEREMONY_REGISTER)
+        );
     }
 
     public function testSaveReplacesPendingChallenge(): void
     {
-        $this->storage->save('first');
-        $this->storage->save('second');
+        $this->storage->save(ChallengeStorage::CEREMONY_LOGIN, 'first');
+        $this->storage->save(ChallengeStorage::CEREMONY_REGISTER, 'second');
 
-        self::assertSame(['challenge' => 'second', 'scope' => null], $this->storage->consume());
-        self::assertNull($this->storage->consume());
+        self::assertSame(
+            ['challenge' => 'second', 'scope' => null],
+            $this->storage->consume(ChallengeStorage::CEREMONY_REGISTER)
+        );
+        self::assertNull($this->storage->consume(ChallengeStorage::CEREMONY_REGISTER));
     }
 
     public function testLoginScopeIsBoundToTheChallenge(): void
     {
-        $this->storage->save('scoped', 42);
+        $this->storage->save(ChallengeStorage::CEREMONY_LOGIN, 'scoped', 42);
 
-        self::assertSame(['challenge' => 'scoped', 'scope' => 42], $this->storage->consume());
+        self::assertSame(
+            ['challenge' => 'scoped', 'scope' => 42],
+            $this->storage->consume(ChallengeStorage::CEREMONY_LOGIN)
+        );
     }
 
     public function testUnknownEmailScopeRoundTripsAsZero(): void
     {
-        $this->storage->save('scoped', 0);
+        $this->storage->save(ChallengeStorage::CEREMONY_LOGIN, 'scoped', 0);
 
-        self::assertSame(['challenge' => 'scoped', 'scope' => 0], $this->storage->consume());
+        self::assertSame(
+            ['challenge' => 'scoped', 'scope' => 0],
+            $this->storage->consume(ChallengeStorage::CEREMONY_LOGIN)
+        );
     }
 }

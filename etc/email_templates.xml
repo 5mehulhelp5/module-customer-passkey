@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="dmlab_customer_passkey_notification_added_template" label="Passkey Added"
+              file="passkey_added.html" type="html" module="DmLab_CustomerPasskey" area="frontend"/>
+    <template id="dmlab_customer_passkey_notification_removed_template" label="Passkey Removed"
+              file="passkey_removed.html" type="html" module="DmLab_CustomerPasskey" area="frontend"/>
+</config>

@@ -1,12 +1,14 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\CustomerPasskey\Controller\Register;
 
 use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Notification\PasskeyNotifier;
 use DmLab\CustomerPasskey\Model\Registration\AttestationVerifier;
 use DmLab\CustomerPasskey\Model\Security\RateLimiter;
 use DmLab\CustomerPasskey\Model\Webauthn\ChallengeStorage;
@@ -25,7 +27,9 @@ use Psr\Log\LoggerInterface;
  * for the logged-in customer with an optional label.
  *
  * The one-time challenge is consumed from the session before verification, so a
- * replayed attestation finds none and is rejected. A verified credential whose id
+ * replayed attestation finds none and is rejected. It must have been issued to the
+ * current customer: the session survives a customer switch (e.g. Login as Customer),
+ * so a challenge minted for another account is refused. A verified credential whose id
  * is already registered is refused (a passkey enrols once). Every validation
  * failure is logged and reported generically — details never reach the client.
  */
@@ -46,6 +50,7 @@ class Verify implements HttpPostActionInterface
      * @param JsonFactory $resultJsonFactory
      * @param LoggerInterface $logger
      * @param RateLimiter $rateLimiter
+     * @param PasskeyNotifier $notifier
      */
     public function __construct(
         private readonly Config $config,
@@ -56,7 +61,8 @@ class Verify implements HttpPostActionInterface
         private readonly CredentialSourceRepository $credentialSourceRepository,
         private readonly JsonFactory $resultJsonFactory,
         private readonly LoggerInterface $logger,
-        private readonly RateLimiter $rateLimiter
+        private readonly RateLimiter $rateLimiter,
+        private readonly PasskeyNotifier $notifier
     ) {
     }
 
@@ -93,15 +99,16 @@ class Verify implements HttpPostActionInterface
             return $this->error($result, 400, __('Invalid passkey payload.'));
         }
 
-        $pending = $this->challengeStorage->consume();
-        if ($pending === null || $pending['challenge'] === '') {
+        $customerId = (int)$this->customerSession->getCustomerId();
+        $pending = $this->challengeStorage->consume(ChallengeStorage::CEREMONY_REGISTER);
+        if ($pending === null || $pending['challenge'] === '' || $pending['scope'] !== $customerId) {
             return $this->error($result, 400, __('Your passkey registration expired. Please try again.'));
         }
 
         try {
             $customer = $this->customerSession->getCustomerData();
             $source = $this->attestationVerifier->verify(
-                (int)$this->customerSession->getCustomerId(),
+                $customerId,
                 (string)$customer->getEmail(),
                 $this->displayName($customer),
                 $pending['challenge'],
@@ -119,6 +126,7 @@ class Verify implements HttpPostActionInterface
 
         $label = trim((string)$this->request->getParam('label', ''));
         $this->credentialSourceRepository->saveNewCredential($source, $label !== '' ? $label : null);
+        $this->notifier->notifyAdded($customer, $label);
 
         return $result->setData(['success' => true, 'message' => __('Passkey added.')]);
     }

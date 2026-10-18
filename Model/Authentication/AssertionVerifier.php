@@ -1,29 +1,27 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\CustomerPasskey\Model\Authentication;
 
 use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialLoader;
 use DmLab\CustomerPasskey\Model\Webauthn\CredentialSourceRepository;
 use DmLab\CustomerPasskey\Model\Webauthn\RelyingPartyEntityFactory;
-use Webauthn\AttestationStatement\AttestationObjectLoader;
-use Webauthn\AttestationStatement\AttestationStatementSupportManager;
-use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\AuthenticatorAssertionResponseValidator;
 use Webauthn\CeremonyStep\CeremonyStepManagerFactory;
-use Webauthn\PublicKeyCredentialLoader;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialRequestOptions;
-use Webauthn\PublicKeyCredentialSource;
 
 /**
  * Verifies a WebAuthn authentication (assertion) response against the challenge
  * the {@see \DmLab\CustomerPasskey\Controller\Login\Options} controller
- * issued, returning the {@see PublicKeyCredentialSource} whose owning customer id
- * ({@see PublicKeyCredentialSource::$userHandle}) the caller logs in.
+ * issued, returning the {@see CredentialRecord} whose owning customer id
+ * ({@see CredentialRecord::$userHandle}) the caller logs in.
  *
  * The stored credential is resolved by the asserted credential id through our
  * storage ({@see CredentialSourceRepository}); an unknown id is rejected before
@@ -39,11 +37,13 @@ class AssertionVerifier
      * @param Config $config
      * @param RelyingPartyEntityFactory $relyingPartyEntityFactory
      * @param CredentialSourceRepository $credentialSourceRepository
+     * @param CredentialLoader $credentialLoader
      */
     public function __construct(
         private readonly Config $config,
         private readonly RelyingPartyEntityFactory $relyingPartyEntityFactory,
-        private readonly CredentialSourceRepository $credentialSourceRepository
+        private readonly CredentialSourceRepository $credentialSourceRepository,
+        private readonly CredentialLoader $credentialLoader
     ) {
     }
 
@@ -66,7 +66,7 @@ class AssertionVerifier
         array $credential,
         ?int $expectedCustomerId = null,
         $storeId = null
-    ): PublicKeyCredentialSource {
+    ): CredentialRecord {
         $rp = $this->relyingPartyEntityFactory->create($storeId);
         $rpId = (string)$rp->id;
 
@@ -78,13 +78,13 @@ class AssertionVerifier
             $this->config->getTimeout($storeId)
         );
 
-        $publicKeyCredential = $this->loader()->loadArray($credential);
+        $publicKeyCredential = $this->credentialLoader->load($credential);
         $response = $publicKeyCredential->response;
         if (!$response instanceof AuthenticatorAssertionResponse) {
             throw new \InvalidArgumentException('The credential is not an authentication (assertion) response.');
         }
 
-        $source = $this->credentialSourceRepository->findOneByCredentialId($publicKeyCredential->getRawId());
+        $source = $this->credentialSourceRepository->findOneByCredentialId($publicKeyCredential->rawId);
         if ($source === null) {
             throw new \InvalidArgumentException('The credential is not registered.');
         }
@@ -107,20 +107,6 @@ class AssertionVerifier
     }
 
     /**
-     * Loader turning the browser credential JSON into library value objects.
-     *
-     * Only the `none` attestation statement support this module offers is registered;
-     * an assertion carries no attestation statement, so the manager is a formality.
-     */
-    private function loader(): PublicKeyCredentialLoader
-    {
-        $support = AttestationStatementSupportManager::create();
-        $support->add(NoneAttestationStatementSupport::create());
-
-        return PublicKeyCredentialLoader::create(AttestationObjectLoader::create($support));
-    }
-
-    /**
      * Assertion-response validator running the standard request ceremony, whose
      * counter step ({@see \Webauthn\CeremonyStep\CheckCounter}) performs clone
      * detection.
@@ -128,7 +114,7 @@ class AssertionVerifier
     private function validator(): AuthenticatorAssertionResponseValidator
     {
         return AuthenticatorAssertionResponseValidator::create(
-            ceremonyStepManager: (new CeremonyStepManagerFactory())->requestCeremony()
+            (new CeremonyStepManagerFactory())->requestCeremony()
         );
     }
 }

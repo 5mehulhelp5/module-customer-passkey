@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -121,6 +122,56 @@ class ConfigTest extends TestCase
             ->willReturn('0');
 
         self::assertSame(Config::DEFAULT_TIMEOUT, $this->config->getTimeout());
+    }
+
+    public function testGetReauthWindowReturnsConfiguredValue(): void
+    {
+        $this->scopeConfig->method('getValue')
+            ->with(Config::XML_PATH_REAUTH_WINDOW, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn('600');
+
+        self::assertSame(600, $this->config->getReauthWindow());
+    }
+
+    public function testGetReauthWindowFallsBackWhenUnsetOrNonPositive(): void
+    {
+        $this->scopeConfig->method('getValue')
+            ->with(Config::XML_PATH_REAUTH_WINDOW, ScopeInterface::SCOPE_STORE, null)
+            ->willReturnOnConsecutiveCalls(null, '0');
+
+        self::assertSame(Config::DEFAULT_REAUTH_WINDOW, $this->config->getReauthWindow());
+        self::assertSame(Config::DEFAULT_REAUTH_WINDOW, $this->config->getReauthWindow());
+    }
+
+    public function testIsNotificationEnabledDelegatesToFlag(): void
+    {
+        $this->scopeConfig->method('isSetFlag')
+            ->with(Config::XML_PATH_NOTIFICATION_ENABLED, ScopeInterface::SCOPE_STORE, 3)
+            ->willReturn(true);
+
+        self::assertTrue($this->config->isNotificationEnabled(3));
+    }
+
+    public function testNotificationSettingsReturnConfiguredValues(): void
+    {
+        $this->scopeConfig->method('getValue')->willReturnMap([
+            [Config::XML_PATH_NOTIFICATION_IDENTITY, ScopeInterface::SCOPE_STORE, 3, 'support'],
+            [Config::XML_PATH_NOTIFICATION_ADDED_TEMPLATE, ScopeInterface::SCOPE_STORE, 3, '12'],
+            [Config::XML_PATH_NOTIFICATION_REMOVED_TEMPLATE, ScopeInterface::SCOPE_STORE, 3, '13'],
+        ]);
+
+        self::assertSame('support', $this->config->getNotificationIdentity(3));
+        self::assertSame('12', $this->config->getAddedTemplate(3));
+        self::assertSame('13', $this->config->getRemovedTemplate(3));
+    }
+
+    public function testNotificationSettingsFallBackWhenUnset(): void
+    {
+        $this->scopeConfig->method('getValue')->willReturn(null);
+
+        self::assertSame('general', $this->config->getNotificationIdentity());
+        self::assertSame(Config::DEFAULT_ADDED_TEMPLATE, $this->config->getAddedTemplate());
+        self::assertSame(Config::DEFAULT_REMOVED_TEMPLATE, $this->config->getRemovedTemplate());
     }
 
     public function testIsPasswordlessAllowedDelegatesToFlag(): void

@@ -1,11 +1,13 @@
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
  * My Account passkey management for the Luma theme.
  *
  * Add: fetches PublicKeyCredentialCreationOptions, runs the registration ceremony
  * via navigator.credentials.create(), posts the attestation to the verify
- * endpoint. Rename/Delete: post the row's entity_id (and a new label) to the
+ * endpoint; a 401 `reauth` reply reveals the password field and the next attempt
+ * sends it. Rename/Delete: post the row's entity_id (and a new label) to the
  * manage endpoints. Each successful action reloads the section. Bound with
  * data-mage-init from manage/list.phtml.
  */
@@ -114,9 +116,14 @@ define(['jquery', 'mage/translate'], function ($, $t) {
         };
     }
 
+    /** Rejection marker: the server asked for the password, already shown to the user. */
+    var REAUTH_REQUIRED = {};
+
     return function (config, element) {
         var $root = $(element),
-            $message = $root.find('[data-role="passkey-message"]');
+            $message = $root.find('[data-role="passkey-message"]'),
+            $reauth = $root.find('[data-role="passkey-reauth"]'),
+            $password = $root.find('[data-role="passkey-password"]');
 
         function notify(text) {
             $message.text(text);
@@ -136,7 +143,23 @@ define(['jquery', 'mage/translate'], function ($, $t) {
             notify(result && result.message ? result.message : $t('Something went wrong. Please try again.'));
         }
 
+        function requireReauth(xhr) {
+            var result = xhr && xhr.responseJSON;
+
+            if (!result || !result.reauth) {
+                throw xhr;
+            }
+
+            $reauth.show();
+            $password.trigger('focus');
+            notify(result.message);
+
+            throw REAUTH_REQUIRED;
+        }
+
         $root.on('click', '[data-role="passkey-add"]', function () {
+            var password = $password.val();
+
             if (!window.PublicKeyCredential) {
                 notify($t('Passkeys are not supported on this browser.'));
 
@@ -144,14 +167,21 @@ define(['jquery', 'mage/translate'], function ($, $t) {
             }
 
             notify('');
+            $password.val('');
 
-            post(config.optionsUrl, config, {}).then(function (options) {
+            post(config.optionsUrl, config, password ? {password: password} : {}).then(function (options) {
+                $reauth.hide();
+
                 return navigator.credentials.create({publicKey: toCreationOptions(options)});
-            }).then(function (credential) {
+            }, requireReauth).then(function (credential) {
                 return post(config.verifyUrl, config, {
                     publicKeyCredential: JSON.stringify(toPayload(credential))
                 });
-            }).then(reloadOn).catch(fail);
+            }).then(reloadOn).catch(function (error) {
+                if (error !== REAUTH_REQUIRED) {
+                    fail();
+                }
+            });
         });
 
         $root.on('click', '[data-role="passkey-rename"]', function () {

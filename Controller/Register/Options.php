@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -9,23 +10,28 @@ namespace DmLab\CustomerPasskey\Controller\Register;
 use DmLab\CustomerPasskey\Model\Config;
 use DmLab\CustomerPasskey\Model\Registration\CreationOptionsFactory;
 use DmLab\CustomerPasskey\Model\Security\RateLimiter;
+use DmLab\CustomerPasskey\Model\Security\RecentAuthentication;
 use DmLab\CustomerPasskey\Model\Webauthn\ChallengeStorage;
 use DmLab\CustomerPasskey\Model\Webauthn\OptionsSerializer;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Phrase;
 use Psr\Log\LoggerInterface;
 
 /**
  * Returns the {@see \Webauthn\PublicKeyCredentialCreationOptions} for the
  * logged-in customer to drive `navigator.credentials.create()`, and persists the
- * freshly generated challenge in the session for the verify step to consume.
+ * freshly generated challenge, bound to this customer, for the verify step to consume.
  *
  * Requires an authenticated customer — a passkey always enrols against a known
- * account, so an anonymous request is refused with 403. Any build failure is
- * logged and reported generically; the raw options are never partially emitted.
+ * account, so an anonymous request is refused with 403. Outside the
+ * re-authentication window the customer must confirm their password (`password`
+ * param) first, else 401 with `reauth: true`. Any build failure is logged and
+ * reported generically; the raw options are never partially emitted.
  */
 class Options implements HttpPostActionInterface
 {
@@ -43,6 +49,8 @@ class Options implements HttpPostActionInterface
      * @param JsonFactory $resultJsonFactory
      * @param LoggerInterface $logger
      * @param RateLimiter $rateLimiter
+     * @param RecentAuthentication $recentAuthentication
+     * @param RequestInterface $request
      */
     public function __construct(
         private readonly Config $config,
@@ -52,13 +60,15 @@ class Options implements HttpPostActionInterface
         private readonly OptionsSerializer $optionsSerializer,
         private readonly JsonFactory $resultJsonFactory,
         private readonly LoggerInterface $logger,
-        private readonly RateLimiter $rateLimiter
+        private readonly RateLimiter $rateLimiter,
+        private readonly RecentAuthentication $recentAuthentication,
+        private readonly RequestInterface $request
     ) {
     }
 
     /**
      * Emit the creation options, or a JSON error (403 disabled/anonymous /
-     * 429 throttled / 500 failure).
+     * 429 throttled / 401 re-authentication required / 500 failure).
      *
      * @return Json
      */
@@ -91,15 +101,29 @@ class Options implements HttpPostActionInterface
             ]);
         }
 
+        if (!$this->recentAuthentication->isFresh()) {
+            $password = (string)$this->request->getParam('password', '');
+            $customerId = (int)$this->customerSession->getCustomerId();
+            if ($password === '' || !$this->recentAuthentication->confirmPassword($customerId, $password)) {
+                return $result->setHttpResponseCode(401)->setData([
+                    'success' => false,
+                    'reauth' => true,
+                    'message' => $this->reauthMessage($password !== ''),
+                ]);
+            }
+            $this->recentAuthentication->markNow();
+        }
+
         try {
             $customer = $this->customerSession->getCustomerData();
+            $customerId = (int)$this->customerSession->getCustomerId();
             $options = $this->creationOptionsFactory->create(
-                (int)$this->customerSession->getCustomerId(),
+                $customerId,
                 (string)$customer->getEmail(),
                 $this->displayName($customer)
             );
 
-            $this->challengeStorage->save($options->challenge);
+            $this->challengeStorage->save(ChallengeStorage::CEREMONY_REGISTER, $options->challenge, $customerId);
 
             return $result->setData($this->optionsSerializer->toArray($options));
         } catch (\Throwable $e) {
@@ -110,6 +134,18 @@ class Options implements HttpPostActionInterface
                 'message' => __('Could not start passkey registration. Please try again.'),
             ]);
         }
+    }
+
+    /**
+     * The 401 prompt; customers without a password (SSO) are told to sign in again.
+     *
+     * @param bool $passwordGiven
+     */
+    private function reauthMessage(bool $passwordGiven): Phrase
+    {
+        return $passwordGiven
+            ? __('The password is incorrect. No password (e.g. SSO)? Sign out and sign in again.')
+            : __('Confirm your password to add a passkey. No password (e.g. SSO)? Sign out and sign in again.');
     }
 
     /**

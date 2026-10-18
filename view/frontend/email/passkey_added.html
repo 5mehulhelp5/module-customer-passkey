@@ -1,0 +1,20 @@
+<!--
+/**
+ * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
+ */
+-->
+<!--@subject {{trans "A passkey was added to your %store_name account" store_name=$store_name}} @-->
+<!--@vars {
+"var customer_name":"Customer Name",
+"var passkey_label":"Passkey Label",
+"var store_name":"Store Name",
+"var manage_url":"Manage Passkeys URL"
+} @-->
+{{template config_path="design/email/header_template"}}
+
+<p class="greeting">{{trans "%name," name=$customer_name}}</p>
+<p>{{trans 'A new passkey "%label" was added to your account at %store_name.' label=$passkey_label store_name=$store_name}}</p>
+<p>{{trans 'If you did not add it, remove it from <a href="%manage_url">your passkeys</a> and change your password.' manage_url=$manage_url |raw}}</p>
+
+{{template config_path="design/email/footer_template"}}

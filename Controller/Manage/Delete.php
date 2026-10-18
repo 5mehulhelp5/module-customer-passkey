@@ -1,12 +1,14 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\CustomerPasskey\Controller\Manage;
 
 use DmLab\CustomerPasskey\Model\CredentialRepository;
+use DmLab\CustomerPasskey\Model\Notification\PasskeyNotifier;
 use Magento\Customer\Controller\AccountInterface;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action\HttpPostActionInterface;
@@ -30,12 +32,14 @@ class Delete implements HttpPostActionInterface, AccountInterface
      * @param RequestInterface $request
      * @param CredentialRepository $credentials
      * @param JsonFactory $resultJsonFactory
+     * @param PasskeyNotifier $notifier
      */
     public function __construct(
         private readonly Session $customerSession,
         private readonly RequestInterface $request,
         private readonly CredentialRepository $credentials,
-        private readonly JsonFactory $resultJsonFactory
+        private readonly JsonFactory $resultJsonFactory,
+        private readonly PasskeyNotifier $notifier
     ) {
     }
 
@@ -61,6 +65,7 @@ class Delete implements HttpPostActionInterface, AccountInterface
         }
 
         $this->credentials->delete($credential);
+        $this->notifier->notifyRemoved($this->customerSession->getCustomerData(), (string)$credential->label);
 
         return $result->setData(['success' => true, 'message' => __('Passkey removed.')]);
     }

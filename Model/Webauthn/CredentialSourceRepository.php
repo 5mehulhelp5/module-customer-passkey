@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -10,16 +11,15 @@ use DmLab\CustomerPasskey\Model\Credential;
 use DmLab\CustomerPasskey\Model\CredentialRepository;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Symfony\Component\Uid\Uuid;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialDescriptor;
-use Webauthn\PublicKeyCredentialSource;
-use Webauthn\PublicKeyCredentialSourceRepository;
 use Webauthn\PublicKeyCredentialUserEntity;
 use Webauthn\TrustPath\EmptyTrustPath;
 
 /**
- * Adapts our credential storage ({@see CredentialRepository}) to the library's
- * {@see PublicKeyCredentialSourceRepository} contract so the attestation and
- * assertion validators read and write credentials through our table.
+ * Maps our credential storage ({@see CredentialRepository}) to the library's
+ * {@see CredentialRecord} so the attestation and assertion ceremonies read and
+ * write credentials through our table.
  *
  * Type mapping between the two worlds:
  *  - the library uses raw binary ids/keys; we persist the credential id as
@@ -28,10 +28,10 @@ use Webauthn\TrustPath\EmptyTrustPath;
  *    IdP, so the customer entity is the user);
  *  - the AAGUID is a {@see Uuid}; the all-zero (nil) AAGUID is stored as null.
  *
- * The interface is deprecated upstream but remains the supported v4 seam for the
- * classic ceremony validators this module uses.
+ * The stored columns are library-agnostic, so rows written under webauthn-lib 4.x
+ * load unchanged.
  */
-class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
+class CredentialSourceRepository
 {
     /** AAGUID emitted by authenticators that withhold one; stored as null. */
     private const NIL_AAGUID = '00000000-0000-0000-0000-000000000000';
@@ -47,9 +47,11 @@ class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
     }
 
     /**
-     * @inheritDoc
+     * The stored credential for a raw credential id, or null when unknown.
+     *
+     * @param string $publicKeyCredentialId raw credential id bytes
      */
-    public function findOneByCredentialId(string $publicKeyCredentialId): ?PublicKeyCredentialSource
+    public function findOneByCredentialId(string $publicKeyCredentialId): ?CredentialRecord
     {
         $credential = $this->credentials->findByCredentialId($this->encodeBase64Url($publicKeyCredentialId));
 
@@ -57,7 +59,10 @@ class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
     }
 
     /**
-     * @inheritDoc
+     * All stored credentials of the customer the user entity stands for.
+     *
+     * @param PublicKeyCredentialUserEntity $publicKeyCredentialUserEntity
+     * @return CredentialRecord[]
      */
     public function findAllForUserEntity(PublicKeyCredentialUserEntity $publicKeyCredentialUserEntity): array
     {
@@ -67,15 +72,17 @@ class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
         }
 
         return array_map(
-            fn(Credential $credential): PublicKeyCredentialSource => $this->toSource($credential),
+            fn(Credential $credential): CredentialRecord => $this->toSource($credential),
             $this->credentials->listByCustomer($customerId)
         );
     }
 
     /**
-     * @inheritDoc
+     * Persist a credential after a successful assertion (fresh counter, last use).
+     *
+     * @param CredentialRecord $publicKeyCredentialSource
      */
-    public function saveCredentialSource(PublicKeyCredentialSource $publicKeyCredentialSource): void
+    public function saveCredentialSource(CredentialRecord $publicKeyCredentialSource): void
     {
         $credentialId = $this->encodeBase64Url($publicKeyCredentialSource->publicKeyCredentialId);
         $existing = $this->credentials->findByCredentialId($credentialId);
@@ -90,15 +97,15 @@ class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
     /**
      * Persist a freshly attested credential, applying the optional enrol-time label.
      *
-     * The library write path ({@see saveCredentialSource}) is label-agnostic; this
+     * The assertion write path ({@see saveCredentialSource}) is label-agnostic; this
      * is the registration entry point, so it records the customer-chosen label on
      * the new row. The credential id is expected to be unused (the caller rejects
      * duplicates first), so a new row is always created.
      *
-     * @param PublicKeyCredentialSource $source
+     * @param CredentialRecord $source
      * @param string|null $label
      */
-    public function saveNewCredential(PublicKeyCredentialSource $source, ?string $label = null): Credential
+    public function saveNewCredential(CredentialRecord $source, ?string $label = null): Credential
     {
         $credential = $this->toCredential($source, null);
         if ($label !== null && $label !== '') {
@@ -109,17 +116,17 @@ class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
     }
 
     /**
-     * Map a stored credential to the library source used by the validators.
+     * Map a stored credential to the library record used by the validators.
      *
      * @param Credential $credential
      */
-    private function toSource(Credential $credential): PublicKeyCredentialSource
+    private function toSource(Credential $credential): CredentialRecord
     {
         $aaguid = $credential->aaguid !== null && Uuid::isValid($credential->aaguid)
             ? Uuid::fromString($credential->aaguid)
             : Uuid::fromString(self::NIL_AAGUID);
 
-        return PublicKeyCredentialSource::create(
+        return CredentialRecord::create(
             $this->decodeBase64Url($credential->credentialId),
             PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
             $credential->transports,
@@ -133,16 +140,16 @@ class CredentialSourceRepository implements PublicKeyCredentialSourceRepository
     }
 
     /**
-     * Merge a library source into a (possibly existing) stored credential.
+     * Merge a library record into a (possibly existing) stored credential.
      *
      * On an existing row the owning customer, label and creation time are kept;
      * the counter and mutable attestation fields are refreshed. A new row takes
      * the customer id from the source's user handle.
      *
-     * @param PublicKeyCredentialSource $source
+     * @param CredentialRecord $source
      * @param Credential|null $existing
      */
-    private function toCredential(PublicKeyCredentialSource $source, ?Credential $existing): Credential
+    private function toCredential(CredentialRecord $source, ?Credential $existing): Credential
     {
         $credential = $existing ?? new Credential(customerId: (int)$source->userHandle);
 

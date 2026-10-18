@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -14,8 +15,8 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialDescriptor;
-use Webauthn\PublicKeyCredentialSource;
 use Webauthn\PublicKeyCredentialUserEntity;
 use Webauthn\TrustPath\EmptyTrustPath;
 
@@ -63,7 +64,7 @@ class CredentialSourceRepositoryTest extends TestCase
 
         $source = $this->repository->findOneByCredentialId('raw-credential-id');
 
-        self::assertInstanceOf(PublicKeyCredentialSource::class, $source);
+        self::assertInstanceOf(CredentialRecord::class, $source);
         self::assertSame('raw-credential-id', $source->publicKeyCredentialId);
         self::assertSame(PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY, $source->type);
         self::assertSame('raw-cose-key', $source->credentialPublicKey);
@@ -254,8 +255,8 @@ class CredentialSourceRepositoryTest extends TestCase
         string $userHandle,
         int $counter,
         string $aaguid
-    ): PublicKeyCredentialSource {
-        return PublicKeyCredentialSource::create(
+    ): CredentialRecord {
+        return CredentialRecord::create(
             $rawId,
             PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
             [],

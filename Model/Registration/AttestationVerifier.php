@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -8,24 +9,21 @@ namespace DmLab\CustomerPasskey\Model\Registration;
 
 use Cose\Algorithms;
 use DmLab\CustomerPasskey\Model\Config;
+use DmLab\CustomerPasskey\Model\Webauthn\CredentialLoader;
 use DmLab\CustomerPasskey\Model\Webauthn\RelyingPartyEntityFactory;
-use Webauthn\AttestationStatement\AttestationObjectLoader;
-use Webauthn\AttestationStatement\AttestationStatementSupportManager;
-use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AuthenticatorAttestationResponse;
 use Webauthn\AuthenticatorAttestationResponseValidator;
 use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\CeremonyStep\CeremonyStepManagerFactory;
+use Webauthn\CredentialRecord;
 use Webauthn\PublicKeyCredentialCreationOptions;
-use Webauthn\PublicKeyCredentialLoader;
 use Webauthn\PublicKeyCredentialParameters;
-use Webauthn\PublicKeyCredentialSource;
 use Webauthn\PublicKeyCredentialUserEntity;
 
 /**
  * Verifies a WebAuthn registration (attestation) response against the challenge
  * the {@see \DmLab\CustomerPasskey\Controller\Register\Options} controller
- * issued, returning the {@see PublicKeyCredentialSource} to persist.
+ * issued, returning the {@see CredentialRecord} to persist.
  *
  * The original creation options are reconstructed from the consumed challenge plus
  * the logged-in customer (the relying party is Magento, so the customer is the
@@ -47,10 +45,12 @@ class AttestationVerifier
     /**
      * @param RelyingPartyEntityFactory $relyingPartyEntityFactory
      * @param Config $config
+     * @param CredentialLoader $credentialLoader
      */
     public function __construct(
         private readonly RelyingPartyEntityFactory $relyingPartyEntityFactory,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly CredentialLoader $credentialLoader
     ) {
     }
 
@@ -73,7 +73,7 @@ class AttestationVerifier
         string $challenge,
         array $credential,
         $storeId = null
-    ): PublicKeyCredentialSource {
+    ): CredentialRecord {
         $rp = $this->relyingPartyEntityFactory->create($storeId);
         $options = PublicKeyCredentialCreationOptions::create(
             $rp,
@@ -89,7 +89,7 @@ class AttestationVerifier
             AuthenticatorSelectionCriteria::create(null, $this->config->getUserVerification($storeId))
         );
 
-        $publicKeyCredential = $this->loader()->loadArray($credential);
+        $publicKeyCredential = $this->credentialLoader->load($credential);
         $response = $publicKeyCredential->response;
         if (!$response instanceof AuthenticatorAttestationResponse) {
             throw new \InvalidArgumentException('The credential is not a registration (attestation) response.');
@@ -99,25 +99,12 @@ class AttestationVerifier
     }
 
     /**
-     * Loader turning the browser credential JSON into library value objects.
-     *
-     * Only the `none` attestation statement support this module offers is registered.
-     */
-    private function loader(): PublicKeyCredentialLoader
-    {
-        $support = AttestationStatementSupportManager::create();
-        $support->add(NoneAttestationStatementSupport::create());
-
-        return PublicKeyCredentialLoader::create(AttestationObjectLoader::create($support));
-    }
-
-    /**
      * Attestation-response validator running the standard creation ceremony.
      */
     private function validator(): AuthenticatorAttestationResponseValidator
     {
         return AuthenticatorAttestationResponseValidator::create(
-            ceremonyStepManager: (new CeremonyStepManagerFactory())->creationCeremony()
+            (new CeremonyStepManagerFactory())->creationCeremony()
         );
     }
 }

@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -13,9 +14,8 @@ use Webauthn\PublicKeyCredentialRpEntity;
  * Builds the WebAuthn relying-party entity from module configuration.
  *
  * Magento is the relying party, so the entity's `id` is the base-URL host
- * ({@see Config::getRpId}) and its `name` is the configured display name
- * ({@see Config::getRpDisplayName}). Both the registration and authentication
- * ceremonies feed this into the library's options factories.
+ * ({@see Config::getRpId}). The library deprecates the entity `name`, so it is left
+ * empty here; {@see OptionsSerializer} emits the configured display name as `rp.name`.
  */
 class RelyingPartyEntityFactory
 {
@@ -38,9 +38,6 @@ class RelyingPartyEntityFactory
     {
         $rpId = $this->config->getRpId($storeId);
 
-        return PublicKeyCredentialRpEntity::create(
-            $this->config->getRpDisplayName($storeId),
-            $rpId === '' ? null : $rpId
-        );
+        return PublicKeyCredentialRpEntity::create('', $rpId === '' ? null : $rpId);
     }
 }

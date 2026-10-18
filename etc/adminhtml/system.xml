@@ -2,6 +2,7 @@
 <!--
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -45,7 +46,9 @@
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Authenticator Attachment</label>
                     <source_model>DmLab\CustomerPasskey\Model\Config\Source\AuthenticatorAttachment</source_model>
-                    <comment>Which class of authenticator to steer customers toward. "Any" applies no restriction.</comment>
+                    <comment>
+                        Which class of authenticator to steer customers toward. "Any" applies no restriction.
+                    </comment>
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
@@ -64,6 +67,51 @@
                     <label>Allow Passwordless Sign-In</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Offers usernameless "Sign in with a passkey" using discoverable credentials.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="reauth_window" translate="label comment" type="text" sortOrder="70"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Re-authentication Window (s)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Adding a passkey this soon after sign-in needs no password. Defaults to 300.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="notification" translate="label" type="text" sortOrder="20"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Notifications</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Customer on Passkey Changes</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Sends an email whenever a passkey is added to or removed from the account.</comment>
+                </field>
+                <field id="identity" translate="label" type="select" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="added_template" translate="label comment" type="select" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Passkey Added Template</label>
+                    <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="removed_template" translate="label comment" type="select" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Passkey Removed Template</label>
+                    <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
                     <depends>
                         <field id="enabled">1</field>
                     </depends>

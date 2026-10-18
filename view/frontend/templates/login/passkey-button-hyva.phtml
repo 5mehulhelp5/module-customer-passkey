@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
  * Hyvä-compatible variant of the passkey sign-in button. Hyvä ships no RequireJS,
  * so the discoverable-login ceremony runs from an inline Alpine.js component rather
@@ -94,6 +95,7 @@
                         });
                         const verify = await verifyResponse.json();
                         if (!verifyResponse.ok || !verify.success) { throw new Error(verify.message || 'verify'); }
+                        // Verify deleted mage-cache-sessid, so Hyvä refetches private content on reload.
                         window.location.reload();
                     } catch (e) {
                         this.busy = false;

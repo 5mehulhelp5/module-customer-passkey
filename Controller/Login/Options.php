@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -25,13 +26,11 @@ use Psr\Log\LoggerInterface;
  * `navigator.credentials.get()` for a passwordless storefront login, and persists
  * the freshly generated challenge in the session for the verify step to consume.
  *
- * A public endpoint (login runs before a session exists). Two flows: with no
- * `email` it issues discoverable/usernameless options (empty `allowCredentials`),
- * offered only when passwordless login is enabled; with an `email` it scopes
- * `allowCredentials` to that customer's passkeys. An unknown or passkey-less email
- * falls back to discoverable options rather than erroring, so a lookup miss is not
- * distinguishable by status code (a known email with passkeys still returns a
- * populated `allowCredentials`, which is inherent to the email-first flow).
+ * A public endpoint (login runs before a session exists). Options are always
+ * discoverable (empty `allowCredentials`), so the response is identical for any
+ * email. Without an `email` it is offered only when passwordless login is enabled;
+ * an `email` only scopes the stored challenge to that account (0 when unknown),
+ * which the verify step enforces server-side.
  */
 class Options implements HttpPostActionInterface
 {
@@ -96,15 +95,12 @@ class Options implements HttpPostActionInterface
         }
 
         try {
-            // Discoverable (no email) is unscoped — any resident key may assert.
-            // Email-first binds the request to the resolved account (0 for an
-            // unknown email) so the verify step can enforce that server-side; the
-            // response itself stays identical, so a lookup miss is not observable.
-            $customerId = $email !== '' ? $this->resolveCustomerId($email) : null;
-            $scope = $email !== '' ? ($customerId ?? 0) : null;
-            $options = $this->requestOptionsFactory->create($customerId);
+            // No email → unscoped, any resident key may assert. An email scopes the
+            // challenge to its account (0 when unknown) for the verify step only.
+            $scope = $email !== '' ? ($this->resolveCustomerId($email) ?? 0) : null;
+            $options = $this->requestOptionsFactory->create();
 
-            $this->challengeStorage->save($options->challenge, $scope);
+            $this->challengeStorage->save(ChallengeStorage::CEREMONY_LOGIN, $options->challenge, $scope);
 
             return $result->setData($this->optionsSerializer->toArray($options));
         } catch (\Throwable $e) {
@@ -115,9 +111,9 @@ class Options implements HttpPostActionInterface
     }
 
     /**
-     * The current website's customer id for the email, or null when no such account
-     * exists — the caller then falls back to discoverable options, so an unknown
-     * email is indistinguishable from a known one (no account enumeration).
+     * The current website's customer id for the email, or null when unknown.
+     *
+     * Used only for the server-side challenge scope, never in the response.
      *
      * @param string $email
      */
