@@ -2,8 +2,7 @@
 
 > Passwordless storefront login for Magento 2 with passkeys (WebAuthn / FIDO2).
 
-[![CI](https://github.com/dmlab-work/module-customer-passkey/actions/workflows/ci.yml/badge.svg)](https://github.com/dmlab-work/module-customer-passkey/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/dmlab-work/module-customer-passkey/graph/badge.svg)](https://codecov.io/gh/dmlab-work/module-customer-passkey) [![Packagist](https://img.shields.io/packagist/dt/dmlab/module-customer-passkey)](https://packagist.org/packages/dmlab/module-customer-passkey)
-![License](https://img.shields.io/badge/license-OSL--3.0-green) ![Magento](https://img.shields.io/badge/Magento-2.4-orange) ![PHP](https://img.shields.io/badge/PHP-8.3--8.5-blue) ![Version](https://img.shields.io/badge/version-0.2.0-lightgrey)
+[![CI](https://github.com/dmlab-work/module-customer-passkey/actions/workflows/ci.yml/badge.svg)](https://github.com/dmlab-work/module-customer-passkey/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/dmlab-work/module-customer-passkey/graph/badge.svg)](https://codecov.io/gh/dmlab-work/module-customer-passkey) [![Packagist Version](https://img.shields.io/packagist/v/dmlab/module-customer-passkey)](https://packagist.org/packages/dmlab/module-customer-passkey) [![Downloads](https://img.shields.io/packagist/dt/dmlab/module-customer-passkey)](https://packagist.org/packages/dmlab/module-customer-passkey) [![PHP](https://img.shields.io/packagist/dependency-v/dmlab/module-customer-passkey/php)](https://packagist.org/packages/dmlab/module-customer-passkey) [![License](https://img.shields.io/packagist/l/dmlab/module-customer-passkey)](LICENSE) ![Magento](https://img.shields.io/badge/Magento-2.4-orange)
 
 Passwordless, phishing-resistant customer login for the Magento 2 storefront using
 **passkeys (WebAuthn / FIDO2)**. Magento is the relying party (verifier) — there is no
