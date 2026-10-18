@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] — unreleased
+## [0.2.0] — 2026-10-18
 
 ### Security
 - Challenges are bound to their ceremony: a login-minted challenge can no longer complete a registration.
